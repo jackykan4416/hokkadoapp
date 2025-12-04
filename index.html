@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>北海道之旅 ❄️</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Vue 3 -->
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: #f3f4f6; /* Gray-100 */
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        /* 隱藏滾動條但保持功能 */
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        /* 模擬手機 APP 的容器 */
+        .app-container {
+            max-width: 480px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            min-height: 100vh;
+            position: relative;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            padding-bottom: 80px; /* 給底部導航留空間 */
+        }
+
+        /* 自定義動畫 */
+        .fade-enter-active, .fade-leave-active {
+            transition: opacity 0.2s ease;
+        }
+        .fade-enter-from, .fade-leave-to {
+            opacity: 0;
+        }
+        
+        /* 行程時間軸線條 */
+        .timeline-line::before {
+            content: '';
+            position: absolute;
+            top: 20px;
+            bottom: -20px;
+            left: 19px;
+            width: 2px;
+            background: #e5e7eb;
+            z-index: 0;
+        }
+        .last-item .timeline-line::before {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+<div id="app" class="bg-gray-100 min-h-screen">
+    <div class="app-container">
+        
+        <!-- Header -->
+        <header class="bg-gradient-to-r from-blue-500 to-cyan-400 text-white p-6 rounded-b-3xl shadow-lg sticky top-0 z-20">
+            <div class="flex justify-between items-center">
+                <div>
+                    <h1 class="text-2xl font-bold tracking-wide">北海道之旅 🇯🇵</h1>
+                    <p class="text-blue-100 text-sm mt-1"><i class="fas fa-snowflake mr-1"></i> {{ days.length }} 天行程規劃</p>
+                </div>
+                <div class="bg-white/20 p-2 rounded-full backdrop-blur-sm cursor-pointer hover:bg-white/30 transition" @click="resetData">
+                    <i class="fas fa-cog text-white"></i>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="p-4">
+            
+            <!-- 頁面 1: 行程表 -->
+            <transition name="fade" mode="out-in">
+                <div v-if="currentTab === 'schedule'" key="schedule">
+                    <!-- 天數選擇器 -->
+                    <div class="flex overflow-x-auto gap-3 pb-4 hide-scrollbar mb-2">
+                        <button 
+                            v-for="(day, index) in days" 
+                            :key="index"
+                            @click="currentDayIndex = index"
+                            class="flex-shrink-0 px-5 py-2 rounded-full text-sm font-bold transition shadow-sm whitespace-nowrap"
+                            :class="currentDayIndex === index ? 'bg-blue-500 text-white shadow-blue-200' : 'bg-white text-gray-500 border border-gray-100'"
+                        >
+                            Day {{ index + 1 }}
+                        </button>
+                        <button @click="addDay" class="flex-shrink-0 w-10 h-9 flex items-center justify-center rounded-full bg-gray-100 text-gray-400 border border-dashed border-gray-300">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                    </div>
+
+                    <!-- 行程列表 -->
+                    <div class="space-y-0">
+                        <div v-if="currentDayActivities.length === 0" class="text-center py-10 text-gray-400">
+                            <i class="fas fa-map-marked-alt text-4xl mb-3 text-gray-200"></i>
+                            <p>這天還沒有行程，快點新增吧！</p>
+                        </div>
+
+                        <div 
+                            v-for="(item, idx) in currentDayActivities" 
+                            :key="item.id"
+                            class="relative pl-12 py-3 timeline-line"
+                            :class="{'last-item': idx === currentDayActivities.length - 1}"
+                        >
+                            <!-- 時間泡泡 -->
+                            <div class="absolute left-0 top-4 w-10 text-xs font-bold text-gray-500 text-center z-10 bg-white py-1">
+                                {{ item.time }}
+                            </div>
+                            <!-- 圓點 -->
+                            <div class="absolute left-[14px] top-[22px] w-3 h-3 bg-blue-400 rounded-full border-2 border-white shadow z-10"></div>
+
+                            <!-- 卡片內容 -->
+                            <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-50 group">
+                                <div class="flex justify-between items-start mb-2">
+                                    <h3 class="font-bold text-gray-800 text-lg">{{ item.location }}</h3>
+                                    <div class="flex gap-2">
+                                        <button @click="editActivity(item)" class="text-gray-300 hover:text-blue-500"><i class="fas fa-pen"></i></button>
+                                        <button @click="deleteActivity(item.id)" class="text-gray-300 hover:text-red-500"><i class="fas fa-trash"></i></button>
+                                    </div>
+                                </div>
+                                <p class="text-gray-500 text-sm mb-3" v-if="item.note">{{ item.note }}</p>
+                                
+                                <!-- 導航按鈕 -->
+                                <a :href="getGoogleMapLink(item.location)" target="_blank" class="inline-flex items-center text-xs bg-blue-50 text-blue-600 px-3 py-1.5 rounded-lg hover:bg-blue-100 transition">
+                                    <i class="fas fa-location-arrow mr-1.5"></i> 導航
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 新增行程按鈕 -->
+                    <button @click="showActivityModal = true; isEditing = false; resetForm()" class="w-full mt-6 py-3 rounded-xl border-2 border-dashed border-blue-200 text-blue-400 font-bold hover:bg-blue-50 transition">
+                        <i class="fas fa-plus mr-2"></i> 新增行程
+                    </button>
+                </div>
+            </transition>
+
+            <!-- 頁面 2: 分帳系統 -->
+            <transition name="fade" mode="out-in">
+                <div v-if="currentTab === 'money'" key="money">
+                    
+                    <!-- 總覽卡片 -->
+                    <div class="bg-gray-800 text-white p-5 rounded-2xl shadow-lg mb-6 relative overflow-hidden">
+                        <div class="absolute -right-5 -top-5 bg-white/10 w-32 h-32 rounded-full blur-2xl"></div>
+                        <h2 class="text-gray-400 text-xs font-bold uppercase tracking-wider mb-1">總花費 Total Spent</h2>
+                        <div class="text-3xl font-bold mb-4">¥ {{ totalExpense.toLocaleString() }}</div>
+                        
+                        <div class="flex items-center justify-between border-t border-gray-700 pt-3">
+                            <div class="text-sm">
+                                <span class="text-gray-400">每人平均</span>
+                                <span class="block font-bold">¥ {{ Math.round(totalExpense / members.length || 0).toLocaleString() }}</span>
+                            </div>
+                            <div class="flex -space-x-2">
+                                <div v-for="m in members" class="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-400 to-purple-400 flex items-center justify-center text-xs font-bold border-2 border-gray-800">
+                                    {{ m.charAt(0) }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 結算建議 (只有在有帳務時顯示) -->
+                    <div v-if="settlements.length > 0" class="mb-6">
+                        <h3 class="font-bold text-gray-800 mb-3 text-sm ml-1">結算建議 (誰該給誰錢)</h3>
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-100 divide-y divide-gray-100">
+                            <div v-for="(s, idx) in settlements" :key="idx" class="p-4 flex items-center justify-between">
+                                <div class="flex items-center gap-3">
+                                    <div class="font-bold text-red-500">{{ s.from }}</div>
+                                    <i class="fas fa-arrow-right text-gray-300 text-xs"></i>
+                                    <div class="font-bold text-green-600">{{ s.to }}</div>
+                                </div>
+                                <div class="font-bold text-gray-800">¥ {{ s.amount.toLocaleString() }}</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 記帳列表 -->
+                    <h3 class="font-bold text-gray-800 mb-3 text-sm ml-1 flex justify-between items-center">
+                        <span>收支明細</span>
+                        <button @click="showMemberModal = true" class="text-xs text-blue-500 bg-blue-50 px-2 py-1 rounded">管理成員</button>
+                    </h3>
+                    
+                    <div class="space-y-3 mb-20">
+                        <div v-if="expenses.length === 0" class="text-center py-8 text-gray-400 bg-white rounded-xl">
+                            <i class="fas fa-receipt text-3xl mb-2 text-gray-200"></i>
+                            <p class="text-sm">還沒有任何花費紀錄</p>
+                        </div>
+
+                        <div v-for="expense in expenses" :key="expense.id" class="bg-white p-4 rounded-xl shadow-sm border border-gray-50 flex justify-between items-center">
+                            <div>
+                                <div class="font-bold text-gray-800">{{ expense.title }}</div>
+                                <div class="text-xs text-gray-400 mt-1">
+                                    <span class="bg-gray-100 px-1.5 py-0.5 rounded text-gray-600">{{ expense.payer }}</span> 先付
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <div class="font-bold text-lg text-gray-800">¥{{ expense.amount.toLocaleString() }}</div>
+                                <button @click="deleteExpense(expense.id)" class="text-xs text-red-300 hover:text-red-500 mt-1">刪除</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 浮動新增按鈕 -->
+                    <button @click="showExpenseModal = true" class="fixed bottom-24 right-4 w-14 h-14 bg-blue-600 text-white rounded-full shadow-xl shadow-blue-300 flex items-center justify-center text-xl hover:scale-105 transition z-10">
+                        <i class="fas fa-plus"></i>
+                    </button>
+                </div>
+            </transition>
+
+            <!-- 頁面 3: 地圖模式 -->
+            <transition name="fade" mode="out-in">
+                <div v-if="currentTab === 'map'" key="map">
+                    <div class="bg-white rounded-2xl shadow-sm p-4 mb-4">
+                        <h2 class="font-bold text-lg mb-2">📍 行程地圖概覽</h2>
+                        <p class="text-sm text-gray-500 mb-4">點擊下方地點直接開啟 Google Maps 導航</p>
+                        
+                        <div class="space-y-2">
+                             <div v-for="(day, dIndex) in days" :key="dIndex">
+                                <div class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 mt-4 ml-1">Day {{ dIndex + 1 }}</div>
+                                <div class="grid grid-cols-1 gap-2">
+                                    <div v-for="act in getActivitiesByDay(dIndex)" :key="act.id">
+                                        <a :href="getGoogleMapLink(act.location)" target="_blank" class="flex items-center justify-between bg-gray-50 hover:bg-blue-50 p-3 rounded-lg border border-gray-100 transition group">
+                                            <div class="flex items-center gap-3">
+                                                <div class="w-8 h-8 rounded-full bg-blue-100 text-blue-500 flex items-center justify-center text-sm">
+                                                    <i class="fas fa-map-marker-alt"></i>
+                                                </div>
+                                                <span class="font-medium text-gray-700">{{ act.location }}</span>
+                                            </div>
+                                            <i class="fas fa-chevron-right text-gray-300 group-hover:text-blue-400"></i>
+                                        </a>
+                                    </div>
+                                    <div v-if="getActivitiesByDay(dIndex).length === 0" class="text-xs text-gray-400 italic ml-2">本無行程</div>
+                                </div>
+                             </div>
+                        </div>
+                    </div>
+                </div>
+            </transition>
+
+        </main>
+
+        <!-- Bottom Navigation -->
+        <nav class="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-md border-t border-gray-200 pb-safe z-30 max-w-[480px] mx-auto">
+            <div class="flex justify-around items-center h-16">
+                <button @click="currentTab = 'schedule'" class="flex flex-col items-center justify-center w-full h-full space-y-1" :class="currentTab === 'schedule' ? 'text-blue-500' : 'text-gray-400'">
+                    <i class="fas fa-calendar-alt text-lg"></i>
+                    <span class="text-[10px] font-medium">行程</span>
+                </button>
+                <button @click="currentTab = 'money'" class="flex flex-col items-center justify-center w-full h-full space-y-1" :class="currentTab === 'money' ? 'text-blue-500' : 'text-gray-400'">
+                    <i class="fas fa-yen-sign text-lg"></i>
+                    <span class="text-[10px] font-medium">分帳</span>
+                </button>
+                <button @click="currentTab = 'map'" class="flex flex-col items-center justify-center w-full h-full space-y-1" :class="currentTab === 'map' ? 'text-blue-500' : 'text-gray-400'">
+                    <i class="fas fa-map text-lg"></i>
+                    <span class="text-[10px] font-medium">地圖</span>
+                </button>
+            </div>
+        </nav>
+
+        <!-- Modal: 新增/編輯 行程 -->
+        <div v-if="showActivityModal" class="fixed inset-0 bg-black/50 z-50 flex items-end sm:items-center justify-center backdrop-blur-sm">
+            <div class="bg-white w-full max-w-md p-6 rounded-t-3xl sm:rounded-2xl shadow-2xl animate-slide-up">
+                <h3 class="text-xl font-bold mb-4">{{ isEditing ? '編輯行程' : '新增行程' }}</h3>
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 mb-1">時間</label>
+                        <input v-model="form.time" type="time" class="w-full bg-gray-100 rounded-lg p-3 outline-none focus:ring-2 focus:ring-blue-400">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 mb-1">地點 / 活動</label>
+                        <input v-model="form.location" type="text" placeholder="例如：小樽運河" class="w-full bg-gray-100 rounded-lg p-3 outline-none focus:ring-2 focus:ring-blue-400">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 mb-1">備註 (選填)</label>
+                        <textarea v-model="form.note" placeholder="例如：要在這裡吃甜點" class="w-full bg-gray-100 rounded-lg p-3 outline-none focus:ring-2 focus:ring-blue-400 h-20"></textarea>
+                    </div>
+                </div>
+                <div class="flex gap-3 mt-6">
+                    <button @click="showActivityModal = false" class="flex-1 py-3 rounded-xl bg-gray-100 text-gray-600 font-bold">取消</button>
+                    <button @click="saveActivity" class="flex-1 py-3 rounded-xl bg-blue-500 text-white font-bold shadow-lg shadow-blue-200">儲存</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal: 新增消費 -->
+        <div v-if="showExpenseModal" class="fixed inset-0 bg-black/50 z-50 flex items-end sm:items-center justify-center backdrop-blur-sm">
+            <div class="bg-white w-full max-w-md p-6 rounded-t-3xl sm:rounded-2xl shadow-2xl animate-slide-up">
+                <h3 class="text-xl font-bold mb-4">記一筆</h3>
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 mb-1">金額 (JPY)</label>
+                        <input v-model.number="expenseForm.amount" type="number" placeholder="0" class="w-full bg-gray-100 rounded-lg p-3 text-xl font-bold text-center outline-none focus:ring-2 focus:ring-blue-400">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 mb-1">項目</label>
+                        <input v-model="expenseForm.title" type="text" placeholder="例如：晚餐 - 成吉思汗烤肉" class="w-full bg-gray-100 rounded-lg p-3 outline-none focus:ring-2 focus:ring-blue-400">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 mb-1">誰先付的？</label>
+                        <div class="flex gap-2 flex-wrap">
+                            <button 
+                                v-for="m in members" 
+                                :key="m"
+                                @click="expenseForm.payer = m"
+                                class="px-4 py-2 rounded-full text-sm border transition"
+                                :class="expenseForm.payer === m ? 'bg-blue-500 text-white border-blue-500' : 'bg-white text-gray-600 border-gray-200'"
+                            >
+                                {{ m }}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex gap-3 mt-6">
+                    <button @click="showExpenseModal = false" class="flex-1 py-3 rounded-xl bg-gray-100 text-gray-600 font-bold">取消</button>
+                    <button @click="saveExpense" class="flex-1 py-3 rounded-xl bg-green-500 text-white font-bold shadow-lg shadow-green-200">儲存</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Modal: 成員管理 -->
+        <div v-if="showMemberModal" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center backdrop-blur-sm">
+             <div class="bg-white w-full max-w-sm p-6 rounded-2xl shadow-2xl">
+                <h3 class="text-lg font-bold mb-4">管理旅伴</h3>
+                <ul class="space-y-2 mb-4">
+                    <li v-for="(m, idx) in members" :key="idx" class="flex justify-between items-center bg-gray-50 p-2 rounded">
+                        <span>{{ m }}</span>
+                        <button v-if="members.length > 1" @click="removeMember(idx)" class="text-red-400"><i class="fas fa-times"></i></button>
+                    </li>
+                </ul>
+                <div class="flex gap-2 mb-6">
+                    <input v-model="newMemberName" type="text" placeholder="新名字" class="flex-1 bg-gray-100 rounded px-3 py-2 text-sm outline-none">
+                    <button @click="addMember" class="bg-blue-500 text-white px-4 py-2 rounded text-sm">新增</button>
+                </div>
+                <button @click="showMemberModal = false" class="w-full py-2 bg-gray-200 rounded text-gray-600 font-bold">完成</button>
+             </div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+    const { createApp, ref, computed, onMounted, watch } = Vue;
+
+    createApp({
+        setup() {
+            // State
+            const currentTab = ref('schedule');
+            const currentDayIndex = ref(0);
+            const showActivityModal = ref(false);
+            const showExpenseModal = ref(false);
+            const showMemberModal = ref(false);
+            const isEditing = ref(false);
+            const newMemberName = ref('');
+
+            // Data (預設載入 LocalStorage 或使用初始值)
+            const days = ref(JSON.parse(localStorage.getItem('hokkaido_days')) || [
+                { id: 1, date: '' }, { id: 2, date: '' }, { id: 3, date: '' }
+            ]);
+            
+            // 預設一些範例資料讓介面不為空
+            const activities = ref(JSON.parse(localStorage.getItem('hokkaido_activities')) || [
+                { id: 1, dayIndex: 0, time: '10:00', location: '新千歲機場', note: '抵達北海道！先去買 JR Pass' },
+                { id: 2, dayIndex: 0, time: '12:30', location: '札幌拉麵共和國', note: '午餐吃味噌拉麵' },
+                { id: 3, dayIndex: 0, time: '15:00', location: '北海道神宮', note: '參拜行程' },
+                { id: 4, dayIndex: 1, time: '09:00', location: '小樽運河', note: '拍照打卡點' },
+                { id: 5, dayIndex: 1, time: '11:00', location: 'LeTAO 本店', note: '必吃雙層乳酪蛋糕' }
+            ]);
+
+            const members = ref(JSON.parse(localStorage.getItem('hokkaido_members')) || ['我', '小明', '小美']);
+            const expenses = ref(JSON.parse(localStorage.getItem('hokkaido_expenses')) || []);
+
+            // Forms
+            const form = ref({ id: null, time: '09:00', location: '', note: '' });
+            const expenseForm = ref({ amount: '', title: '', payer: members.value[0] });
+
+            // Computed
+            const currentDayActivities = computed(() => {
+                return activities.value
+                    .filter(a => a.dayIndex === currentDayIndex.value)
+                    .sort((a, b) => a.time.localeCompare(b.time));
+            });
+
+            const getActivitiesByDay = (dayIndex) => {
+                return activities.value
+                    .filter(a => a.dayIndex === dayIndex)
+                    .sort((a, b) => a.time.localeCompare(b.time));
+            };
+
+            const totalExpense = computed(() => {
+                return expenses.value.reduce((sum, item) => sum + item.amount, 0);
+            });
+
+            // 分帳演算法
+            const settlements = computed(() => {
+                if (members.value.length === 0) return [];
+                
+                // 1. 計算每個人付了多少
+                let paid = {};
+                members.value.forEach(m => paid[m] = 0);
+                
+                expenses.value.forEach(e => {
+                    if (paid[e.payer] !== undefined) {
+                        paid[e.payer] += e.amount;
+                    }
+                });
+
+                // 2. 計算每個人應該付多少 (平均分攤)
+                const total = expenses.value.reduce((sum, e) => sum + e.amount, 0);
+                const average = total / members.value.length;
+
+                // 3. 計算差額 (正數=多付了=別人要還他, 負數=少付了=要還別人)
+                let balances = [];
+                for (let m in paid) {
+                    balances.push({ name: m, val: paid[m] - average });
+                }
+
+                // 4. 匹配債務
+                let result = [];
+                // 排序：少付的在前，多付的在後
+                balances.sort((a, b) => a.val - b.val);
+
+                let i = 0; // 最少付的人 (debtor)
+                let j = balances.length - 1; // 最多付的人 (creditor)
+
+                while (i < j) {
+                    let debit = balances[i].val;
+                    let credit = balances[j].val;
+
+                    if (Math.abs(debit) < 1) { i++; continue; } // 忽略微小誤差
+                    if (Math.abs(credit) < 1) { j--; continue; }
+
+                    let amount = Math.min(Math.abs(debit), credit);
+                    
+                    // 紀錄轉帳
+                    result.push({
+                        from: balances[i].name,
+                        to: balances[j].name,
+                        amount: Math.round(amount)
+                    });
+
+                    balances[i].val += amount;
+                    balances[j].val -= amount;
+
+                    if (Math.abs(balances[i].val) < 1) i++;
+                    if (Math.abs(balances[j].val) < 1) j--;
+                }
+
+                return result;
+            });
+
+            // Watch & Persistence
+            watch([days, activities, members, expenses], () => {
+                localStorage.setItem('hokkaido_days', JSON.stringify(days.value));
+                localStorage.setItem('hokkaido_activities', JSON.stringify(activities.value));
+                localStorage.setItem('hokkaido_members', JSON.stringify(members.value));
+                localStorage.setItem('hokkaido_expenses', JSON.stringify(expenses.value));
+            }, { deep: true });
+
+            // Methods - Schedule
+            const addDay = () => {
+                days.value.push({ id: Date.now(), date: '' });
+            };
+
+            const resetForm = () => {
+                form.value = { id: null, time: '09:00', location: '', note: '' };
+            };
+
+            const saveActivity = () => {
+                if (!form.value.location) return;
+
+                if (isEditing.value) {
+                    const index = activities.value.findIndex(a => a.id === form.value.id);
+                    if (index !== -1) {
+                        activities.value[index] = { ...form.value, dayIndex: currentDayIndex.value };
+                    }
+                } else {
+                    activities.value.push({
+                        id: Date.now(),
+                        dayIndex: currentDayIndex.value,
+                        ...form.value
+                    });
+                }
+                showActivityModal.value = false;
+            };
+
+            const editActivity = (item) => {
+                form.value = { ...item };
+                isEditing.value = true;
+                showActivityModal.value = true;
+            };
+
+            const deleteActivity = (id) => {
+                if(confirm('確定要刪除這個行程嗎？')) {
+                    activities.value = activities.value.filter(a => a.id !== id);
+                }
+            };
+
+            // Methods - Expense
+            const saveExpense = () => {
+                if (!expenseForm.value.amount || !expenseForm.value.title) return;
+                
+                expenses.value.unshift({
+                    id: Date.now(),
+                    ...expenseForm.value
+                });
+                
+                expenseForm.value.amount = '';
+                expenseForm.value.title = '';
+                showExpenseModal.value = false;
+            };
+
+            const deleteExpense = (id) => {
+                if(confirm('確定刪除這筆花費？')) {
+                    expenses.value = expenses.value.filter(e => e.id !== id);
+                }
+            };
+
+            // Methods - Members
+            const addMember = () => {
+                if(newMemberName.value && !members.value.includes(newMemberName.value)){
+                    members.value.push(newMemberName.value);
+                    newMemberName.value = '';
+                }
+            };
+
+            const removeMember = (index) => {
+                if(confirm('刪除成員可能會影響帳務計算，確定嗎？')){
+                    members.value.splice(index, 1);
+                }
+            };
+
+            // Methods - Map
+            const getGoogleMapLink = (location) => {
+                return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(location + ' 北海道')}`;
+            };
+            
+            const resetData = () => {
+                if(confirm('要重置所有資料嗎？這會清空你的所有行程和帳務。')){
+                    localStorage.clear();
+                    location.reload();
+                }
+            }
+
+            return {
+                currentTab,
+                currentDayIndex,
+                days,
+                activities,
+                currentDayActivities,
+                getActivitiesByDay,
+                addDay,
+                showActivityModal,
+                isEditing,
+                form,
+                resetForm,
+                saveActivity,
+                editActivity,
+                deleteActivity,
+                getGoogleMapLink,
+                // Expense
+                expenses,
+                totalExpense,
+                showExpenseModal,
+                expenseForm,
+                saveExpense,
+                deleteExpense,
+                members,
+                settlements,
+                showMemberModal,
+                newMemberName,
+                addMember,
+                removeMember,
+                resetData
+            };
+        }
+    }).mount('#app');
+</script>
+</body>
+</html>
