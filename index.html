@@ -46,8 +46,8 @@
             bottom: 24px;
             left: 50%;
             transform: translateX(-50%);
-            width: 85%;
-            max-width: 380px;
+            width: 92%;
+            max-width: 400px;
             border-radius: 999px;
             background: rgba(44, 62, 80, 0.9);
             backdrop-filter: blur(12px);
@@ -58,7 +58,6 @@
 
         .card-rounded { border-radius: 20px; }
         
-        /* 圖片轉場動畫 */
         .banner-enter-active, .banner-leave-active { transition: opacity 0.5s ease; }
         .banner-enter-from, .banner-leave-to { opacity: 0; }
     </style>
@@ -67,7 +66,7 @@
 
     <div id="app" class="h-full flex flex-col relative" v-cloak>
         
-        <!-- Header: Banner 樣式 (250px) -->
+        <!-- Header -->
         <header class="relative w-full h-[250px] shadow-md z-20 flex-shrink-0 bg-slate-200">
             <transition name="banner">
                 <img 
@@ -79,17 +78,20 @@
                 >
             </transition>
             
-            <!-- 白色遮罩：10% 透明度 -->
-            <div class="absolute inset-0 bg-white/10 z-10"></div>
+            <div class="absolute inset-0 bg-white/5 z-10"></div>
 
-            <!-- 內容容器 -->
             <div class="relative z-20 px-6 py-6 flex justify-between items-start h-full">
                 <div>
-                    <!-- 標題增加文字陰影，確保在圖片上清晰可見 -->
                     <h1 class="text-3xl font-black tracking-wider flex items-center mb-2 text-[var(--color-primary)] drop-shadow-md bg-white/30 px-3 py-1 rounded-xl backdrop-blur-[1px] inline-flex">
                         <i class="fas fa-snowflake text-sky-500 mr-3 animate-pulse"></i>
                         Hokkaido
                     </h1>
+                    
+                    <div class="mb-2">
+                        <span class="bg-[var(--color-primary)] text-white text-xs font-bold px-2 py-1 rounded-md shadow-sm">
+                            <i class="fas fa-hourglass-half mr-1"></i> 距離出發還有 {{ countdown }} 天
+                        </span>
+                    </div>
                     
                     <div class="flex flex-col space-y-1">
                         <div class="flex items-center space-x-3 text-sm text-slate-800 font-bold" v-if="weather">
@@ -112,7 +114,7 @@
                     </div>
                 </div>
                 
-                <button @click="refreshAll" class="w-10 h-10 flex items-center justify-center rounded-full bg-white/80 text-slate-600 hover:bg-white transition active:scale-90 shadow-md backdrop-blur-sm">
+                <button @click="refreshAll" class="w-10 h-10 flex items-center justify-center rounded-full bg-white/80 text-slate-600 hover:bg-white transition active:scale-90 shadow-md backdrop-blur-sm mt-10">
                     <i class="fas fa-sync-alt" :class="{'animate-spin': loading}"></i>
                 </button>
             </div>
@@ -121,41 +123,20 @@
         <!-- Main Content -->
         <main class="flex-1 overflow-y-auto no-scrollbar pb-32 px-4 pt-6">
             
-            <!-- Tab 1: 行程 -->
-            <transition name="fade" mode="out-in">
+            <transition name="slide-up" mode="out-in">
+                <!-- Tab 1: 行程 -->
                 <div v-if="activeTab === 'itinerary'" key="itinerary" class="flex flex-col h-full">
-                    
-                    <!-- 日期選擇器 -->
                     <div v-if="dateKeys.length > 0" class="flex space-x-2 overflow-x-auto no-scrollbar pb-4 px-1 flex-shrink-0">
-                        <button 
-                            v-for="date in dateKeys" 
-                            :key="date"
-                            @click="selectedDay = date"
-                            class="flex-shrink-0 px-4 py-2 rounded-full text-sm font-bold transition-all border"
-                            :class="selectedDay === date ? 'bg-[var(--color-primary)] text-white border-transparent shadow-md' : 'bg-white text-slate-400 border-slate-200 hover:bg-slate-50'"
-                        >
-                            {{ formatShortDate(date) }}
-                        </button>
+                        <button v-for="date in dateKeys" :key="date" @click="selectedDay = date" class="flex-shrink-0 px-4 py-2 rounded-full text-sm font-bold transition-all border" :class="selectedDay === date ? 'bg-[var(--color-primary)] text-white border-transparent shadow-md' : 'bg-white text-slate-400 border-slate-200 hover:bg-slate-50'">{{ formatShortDate(date) }}</button>
                     </div>
 
-                    <!-- 行程列表 -->
                     <div class="flex-1 overflow-y-auto no-scrollbar pb-24" ref="itineraryContainer">
                         <div v-if="selectedDay && groupedItinerary[selectedDay]" class="space-y-0">
-                            
-                            <!-- 日期大標題 -->
                             <div class="flex items-center mb-6 mt-2 ml-2">
-                                <div class="bg-[var(--color-primary)] text-white w-12 h-12 flex items-center justify-center rounded-xl font-black text-xl shadow-lg shadow-blue-900/10 mr-4">
-                                    {{ new Date(selectedDay).getDate() }}
-                                </div>
-                                <div>
-                                    <h2 class="text-xl font-bold text-slate-700">{{ formatDate(selectedDay) }}</h2>
-                                    <span class="text-slate-400 text-xs font-bold bg-slate-100 px-2 py-0.5 rounded">{{ getDayOfWeek(selectedDay) }}</span>
-                                </div>
+                                <div><h2 class="text-2xl font-bold text-slate-700 tracking-wide">{{ formatDate(selectedDay) }}</h2><span class="text-slate-400 text-xs font-bold bg-slate-100 px-2 py-0.5 rounded mt-1 inline-block">{{ getDayOfWeek(selectedDay) }}</span></div>
                             </div>
 
                             <div v-for="(item, index) in groupedItinerary[selectedDay]" :key="index" class="relative pl-2 pb-2">
-                                
-                                <!-- 移動方式 -->
                                 <div v-if="index > 0 && (item.Transport || item.Duration)" class="flex items-center justify-center mb-8 ml-8 relative z-0">
                                     <div class="bg-slate-100 text-slate-600 px-6 py-3 rounded-full text-base font-bold flex items-center border-2 border-slate-200 z-10 shadow-sm">
                                         <span class="mr-3 text-2xl" v-if="item.Transport && item.Transport.includes('車')">🚗</span>
@@ -167,108 +148,76 @@
                                     <div class="absolute top-[-30px] bottom-[-30px] left-1/2 w-1 bg-slate-200 -z-10 h-[calc(100%+60px)]"></div>
                                 </div>
 
-                                <!-- 卡片本體 -->
-                                <div 
-                                    class="bg-white card-rounded shadow-sm p-5 relative overflow-hidden transition-all mb-6 border-l-[6px]"
-                                    :class="getCategoryBorderClass(item.Category)"
-                                >
+                                <div class="bg-white card-rounded shadow-sm p-5 relative overflow-hidden transition-all mb-6 border-l-[6px]" :class="getCategoryBorderClass(item.Category)">
                                     <div class="flex items-start pl-1">
                                         <div class="flex flex-col items-center mr-5 pt-1 min-w-[45px]">
-                                            <span class="text-base font-black text-slate-700 font-mono tracking-tight">{{ item.Time || '--:--' }}</span>
-                                            <div 
-                                                class="mt-3 w-8 h-8 rounded-full flex items-center justify-center border"
-                                                :class="getCategoryIconClass(item.Category)"
-                                            >
-                                                <i :class="getCategoryIcon(item.Category)"></i>
-                                            </div>
+                                            <div class="w-10 h-10 rounded-full flex items-center justify-center border shadow-sm mb-1" :class="getCategoryIconClass(item.Category)"><i :class="getCategoryIcon(item.Category)"></i></div>
                                         </div>
-
-                                        <div class="flex-1 border-l-2 border-slate-50 pl-5">
-                                            <h3 class="font-bold text-slate-800 text-lg leading-snug mb-2">{{ item.Activity }}</h3>
-                                            
-                                            <div class="flex items-center text-xs text-slate-500 mb-3 font-bold">
-                                                <i class="fas fa-map-marker-alt text-red-400 mr-1.5"></i>
-                                                <span>{{ item.Location || '未指定地點' }}</span>
+                                        <div class="flex-1 pl-1">
+                                            <div class="flex justify-between items-start mb-3">
+                                                <h3 class="font-bold text-slate-800 text-lg leading-snug mr-2">{{ item.Activity }}</h3>
+                                                <div class="bg-orange-100 text-orange-600 px-3 py-1 rounded-lg font-black text-sm shadow-sm whitespace-nowrap border border-orange-200">{{ item.Time || '--:--' }}</div>
                                             </div>
-
-                                            <div v-if="item.MapCode" class="mb-3">
-                                                <div class="bg-[var(--color-bg)] px-3 py-2 rounded-xl flex items-center border border-slate-100">
-                                                    <i class="fas fa-car-side text-[var(--color-primary)] mr-3 text-lg opacity-80"></i>
-                                                    <div class="flex flex-col">
-                                                        <span class="text-[9px] text-slate-400 uppercase tracking-wider font-bold">NAVI / MAPCODE</span>
-                                                        <span class="font-mono text-base font-bold text-slate-700 tracking-wide">{{ item.MapCode }}</span>
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            <div v-if="getFoodRecommendation(item)" class="bg-yellow-50 rounded-xl p-3 mb-3 border border-yellow-100">
-                                                <div class="flex items-start">
-                                                    <span class="text-xl mr-2">💡</span>
-                                                    <div>
-                                                        <span class="text-[10px] text-yellow-600 font-black uppercase tracking-wider block mb-0.5">饕客推薦</span>
-                                                        <span class="text-sm text-slate-700 font-bold leading-relaxed">{{ getFoodRecommendation(item) }}</span>
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            <div v-if="item.Note" class="bg-slate-50 rounded-xl p-3 mb-3 text-sm text-slate-600 flex items-start border border-slate-100">
-                                                <span class="text-slate-400 mr-2 mt-0.5">●</span>
-                                                <span class="leading-relaxed text-xs break-all">{{ item.Note }}</span>
-                                            </div>
-
-                                            <div v-if="item.Link" class="mt-2 flex justify-end">
-                                                <a :href="item.Link" target="_blank" class="inline-flex justify-center items-center text-xs font-bold text-[var(--color-primary)] border border-[var(--color-primary)] px-4 py-1.5 rounded-full hover:bg-[var(--color-primary)] hover:text-white transition">
-                                                    <i class="fas fa-location-arrow mr-2"></i> 導航
-                                                </a>
-                                            </div>
+                                            <div class="flex items-center text-xs text-slate-500 mb-3 font-bold"><i class="fas fa-map-marker-alt text-red-400 mr-1.5"></i><span>{{ item.Location || '未指定地點' }}</span></div>
+                                            <div v-if="item.MapCode" class="mb-3"><div class="bg-[var(--color-bg)] px-3 py-2 rounded-xl flex items-center border border-slate-100"><i class="fas fa-car-side text-[var(--color-primary)] mr-3 text-lg opacity-80"></i><div class="flex flex-col"><span class="text-[9px] text-slate-400 uppercase tracking-wider font-bold">NAVI / MAPCODE</span><span class="font-mono text-base font-bold text-slate-700 tracking-wide">{{ item.MapCode }}</span></div></div></div>
+                                            <div v-if="getFoodRecommendation(item)" class="bg-yellow-50 rounded-xl p-3 mb-3 border border-yellow-100"><div class="flex items-start"><span class="text-xl mr-2">💡</span><div><span class="text-[10px] text-yellow-600 font-black uppercase tracking-wider block mb-0.5">饕客推薦</span><span class="text-sm text-slate-700 font-bold leading-relaxed">{{ getFoodRecommendation(item) }}</span></div></div></div>
+                                            <div v-if="item.Note" class="bg-slate-50 rounded-xl p-3 mb-3 text-sm text-slate-600 flex items-start border border-slate-100"><span class="text-slate-400 mr-2 mt-0.5">●</span><span class="leading-relaxed text-xs break-all">{{ item.Note }}</span></div>
+                                            <div v-if="item.Link" class="mt-2 flex justify-end"><a :href="item.Link" target="_blank" class="inline-flex justify-center items-center text-xs font-bold text-[var(--color-primary)] border border-[var(--color-primary)] px-4 py-1.5 rounded-full hover:bg-[var(--color-primary)] hover:text-white transition"><i class="fas fa-location-arrow mr-2"></i> 導航</a></div>
+                                            <div class="mt-4 pt-3 border-t border-slate-100"><div class="relative"><i class="fas fa-pen absolute left-3 top-3 text-yellow-500/50 text-xs"></i><textarea v-model="memos[getItemKey(item)]" @input="saveMemos" class="w-full bg-yellow-50/50 border border-yellow-100 rounded-xl py-2 pl-8 pr-3 text-sm text-slate-600 focus:outline-none focus:ring-2 focus:ring-yellow-200 resize-none transition-shadow" rows="1" placeholder="隨手記 (Memo)..." @focus="$event.target.rows = 3" @blur="$event.target.value === '' ? $event.target.rows = 1 : $event.target.rows = 3"></textarea></div></div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                        
-                        <div v-if="dateKeys.length === 0 && !loading" class="text-center py-20 text-slate-300">
-                            <i class="far fa-snowflake text-5xl mb-4 opacity-50"></i><p>沒有行程資料</p>
-                        </div>
+                        <div v-if="dateKeys.length === 0 && !loading" class="text-center py-20 text-slate-300"><i class="far fa-snowflake text-5xl mb-4 opacity-50"></i><p>沒有行程資料</p></div>
                     </div>
                 </div>
 
                 <!-- Tab 2: 分帳 -->
                 <div v-else-if="activeTab === 'expenses'" key="expenses">
-                    <div class="bg-gradient-to-br from-slate-700 to-slate-800 p-6 card-rounded shadow-xl mb-6 text-center text-white relative overflow-hidden mx-1 mt-2">
+                    <div class="bg-white p-5 rounded-2xl shadow-sm mb-4 border border-slate-100 mx-1 relative overflow-hidden">
+                        <div class="flex justify-between items-start z-10 relative">
+                            <div><p class="text-xs text-slate-400 font-bold tracking-widest mb-1">PUBLIC FUND</p><h3 class="text-lg font-black text-slate-700">公數餘額</h3></div>
+                            <div class="text-right"><h2 class="text-3xl font-black tracking-tight font-mono" :class="publicFundBalance >= 0 ? 'text-sky-600' : 'text-red-500'">¥{{ publicFundBalance.toLocaleString() }}</h2></div>
+                        </div>
+                        <div class="absolute right-0 bottom-0 opacity-5 text-8xl text-sky-500 rotate-12 -mb-4 -mr-4"><i class="fas fa-coins"></i></div>
+                    </div>
+
+                    <div class="bg-gradient-to-br from-slate-700 to-slate-800 p-6 card-rounded shadow-xl mb-6 text-center text-white relative overflow-hidden mx-1">
                         <p class="text-slate-300 text-xs mb-1 font-bold tracking-widest uppercase">Total Expenses</p>
                         <h2 class="text-5xl font-black mb-6 tracking-tight font-mono">¥{{ totalExpense.toLocaleString() }}</h2>
                         <div class="grid grid-cols-5 gap-2 text-white pt-4 border-t border-slate-600">
-                            <div v-for="name in people" :key="name" class="flex flex-col items-center">
-                                <span class="font-bold mb-1 opacity-90 text-xs">{{ name }}</span>
-                                <span class="bg-white/10 px-1 py-1.5 rounded-lg w-full text-center text-sm font-bold tracking-wide">¥{{ getPersonTotal(name).toLocaleString() }}</span>
-                            </div>
+                            <div v-for="name in people" :key="name" class="flex flex-col items-center"><span class="font-bold mb-1 opacity-90 text-xs">{{ name }}</span><span class="bg-white/10 px-1 py-1.5 rounded-lg w-full text-center text-sm font-bold tracking-wide">¥{{ getPersonTotal(name).toLocaleString() }}</span></div>
                         </div>
                     </div>
-
                     <div v-if="!APPS_SCRIPT_URL" class="bg-red-50 text-red-500 p-4 rounded-2xl text-xs mb-4 flex items-center border border-red-100 mx-1"><i class="fas fa-exclamation-triangle mr-3 text-lg"></i> 請填入 Apps Script 網址</div>
-
-                    <button @click="showExpenseModal = true" class="w-full bg-[var(--color-primary)] hover:bg-[var(--color-primary-dark)] text-white font-bold py-4 rounded-2xl shadow-lg shadow-blue-900/20 transition transform active:scale-95 mb-6 flex items-center justify-center mx-auto text-lg"><i class="fas fa-plus mr-2"></i> 記一筆</button>
-
+                    <div class="flex gap-2 mb-6 mx-1">
+                        <button @click="showExpenseModal = true" class="flex-1 bg-[var(--color-primary)] hover:bg-[var(--color-primary-dark)] text-white font-bold py-4 rounded-2xl shadow-lg transition transform active:scale-95 flex items-center justify-center text-lg"><i class="fas fa-plus mr-2"></i> 記一筆</button>
+                        <button @click="calculateSettlement" class="w-16 bg-indigo-100 text-indigo-600 hover:bg-indigo-200 font-bold rounded-2xl shadow-sm transition flex items-center justify-center flex-col text-xs"><i class="fas fa-calculator text-xl mb-1"></i> 結算</button>
+                    </div>
                     <div class="space-y-4 pb-24 px-1">
                         <div v-for="(exp, index) in expenses" :key="index" class="bg-white p-5 card-rounded shadow-sm flex justify-between items-center border border-slate-50">
                             <div class="flex items-center">
-                                <div class="w-10 h-10 rounded-full bg-slate-100 text-slate-500 flex items-center justify-center mr-4 font-black text-sm shrink-0">{{ exp.payer.charAt(0) }}</div>
-                                <div><h4 class="font-bold text-slate-800 text-base line-clamp-1">{{ exp.description }}</h4><p class="text-xs text-slate-400 font-bold mt-0.5">{{ exp.payer }} 先付</p></div>
+                                <div class="w-10 h-10 rounded-full flex items-center justify-center mr-4 font-black text-sm shrink-0" :class="isDeposit(exp) ? 'bg-emerald-100 text-emerald-600' : 'bg-slate-100 text-slate-500'">{{ isDeposit(exp) ? '入' : exp.payer.charAt(0) }}</div>
+                                <div><h4 class="font-bold text-base line-clamp-1" :class="isDeposit(exp) ? 'text-emerald-600' : 'text-slate-800'">{{ exp.description }}</h4><p class="text-xs font-bold mt-0.5" :class="isDeposit(exp) ? 'text-emerald-400' : 'text-slate-400'">{{ exp.payer }} {{ isDeposit(exp) ? '注入' : '先付' }}</p></div>
                             </div>
-                            <div class="text-right shrink-0 ml-3 min-w-[80px]">
-                                <span class="block font-black text-[var(--color-primary)] text-lg">¥{{ parseInt(exp.amount).toLocaleString() }}</span>
-                                <span class="text-[10px] text-slate-300 block mt-0.5 mb-1">{{ formatShortDate(exp.date) }}</span>
-                                <button v-if="exp.id" @click="deleteExpense(exp)" :disabled="isDeleting === exp.id" class="text-[10px] text-red-400 hover:text-red-600 px-2 py-1 bg-red-50 rounded-lg transition font-bold">
-                                    <span v-if="isDeleting === exp.id"><i class="fas fa-spinner fa-spin"></i></span><span v-else>刪除</span>
-                                </button>
-                            </div>
+                            <div class="text-right shrink-0 ml-3 min-w-[80px]"><span class="block font-black text-lg" :class="isDeposit(exp) ? 'text-emerald-500' : 'text-[var(--color-primary)]'">{{ isDeposit(exp) ? '+' : '' }}¥{{ parseInt(exp.amount).toLocaleString() }}</span><span class="text-[10px] text-slate-300 block mt-0.5 mb-1">{{ formatShortDate(exp.date) }}</span><button v-if="exp.id" @click="deleteExpense(exp)" :disabled="isDeleting === exp.id" class="text-[10px] text-red-400 hover:text-red-600 px-2 py-1 bg-red-50 rounded-lg transition font-bold"><span v-if="isDeleting === exp.id"><i class="fas fa-spinner fa-spin"></i></span><span v-else>刪除</span></button></div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Tab 3: 資訊 -->
+                <!-- Tab 3: 工具 -->
+                <div v-else-if="activeTab === 'tools'" key="tools">
+                    <div class="flex p-1 bg-white rounded-xl mb-4 mx-1 border border-slate-200"><button v-for="tab in ['packing', 'shopping', 'phrase', 'car']" :key="tab" @click="toolSubTab = tab" class="flex-1 py-2 text-xs font-bold rounded-lg transition-all" :class="toolSubTab === tab ? 'bg-[var(--color-primary)] text-white shadow-sm' : 'text-slate-400'"><span v-if="tab==='packing'">🎒 行李</span><span v-else-if="tab==='shopping'">🎁 代購</span><span v-else-if="tab==='phrase'">🗣️ 日語</span><span v-else>🅿️ 停車</span></button></div>
+                    <div v-if="toolSubTab === 'packing'" class="pb-24"><div class="bg-white card-rounded p-5 border border-slate-50 mx-1"><h3 class="font-bold text-slate-700 mb-4 flex items-center"><i class="fas fa-suitcase-rolling mr-2 text-[var(--color-primary)]"></i> 雪國自駕必備</h3><div class="space-y-3"><div v-for="(item, idx) in packingList" :key="idx" class="flex items-center p-3 rounded-xl border transition-all" :class="item.checked ? 'bg-slate-50 border-slate-100 opacity-60' : 'bg-white border-slate-200'" @click="togglePacking(idx)"><div class="w-6 h-6 rounded-full border-2 flex items-center justify-center mr-3 transition-colors" :class="item.checked ? 'bg-emerald-400 border-emerald-400 text-white' : 'border-slate-300'"><i class="fas fa-check text-xs" v-if="item.checked"></i></div><span class="text-sm font-bold" :class="item.checked ? 'text-slate-400 line-through' : 'text-slate-700'">{{ item.text }}</span></div></div></div></div>
+                    <div v-else-if="toolSubTab === 'shopping'" class="pb-24"><div class="bg-white p-4 rounded-xl mb-4 border border-slate-100 shadow-sm mx-1"><input v-model="newShopItem.text" type="text" placeholder="輸入商品名稱..." class="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-3 text-sm font-bold focus:ring-2 focus:ring-[var(--color-primary)] focus:outline-none mb-3 transition-shadow"><div class="flex gap-2"><input v-model="newShopItem.who" type="text" placeholder="買給誰?" class="flex-1 bg-slate-50 border border-slate-200 rounded-lg px-4 py-3 text-sm font-bold text-center focus:ring-2 focus:ring-[var(--color-primary)] focus:outline-none transition-shadow"><button @click="addShopItem" class="bg-[var(--color-primary)] hover:bg-[var(--color-primary-dark)] text-white w-14 rounded-lg shadow-md active:scale-95 transition flex items-center justify-center"><i class="fas fa-plus"></i></button></div></div><div class="space-y-3 mx-1"><div v-for="(item, idx) in shoppingList" :key="idx" class="bg-white card-rounded p-4 border border-slate-50 flex justify-between items-center shadow-sm"><div class="flex items-center w-full" @click="toggleShop(idx)"><div class="w-5 h-5 rounded border-2 mr-3 flex items-center justify-center shrink-0" :class="item.checked ? 'bg-emerald-400 border-emerald-400 text-white' : 'border-slate-300'"><i class="fas fa-check text-[10px]" v-if="item.checked"></i></div><div class="flex-1 min-w-0"><div class="font-bold text-slate-700 truncate" :class="{'line-through text-slate-400': item.checked}">{{ item.text }}</div><div class="text-[10px] text-slate-400 bg-slate-100 px-2 py-0.5 rounded w-max mt-1">To: {{ item.who }}</div></div></div><button @click="removeShopItem(idx)" class="text-slate-300 hover:text-red-400 px-2 ml-2"><i class="fas fa-trash-alt"></i></button></div><div v-if="shoppingList.length === 0" class="text-center text-slate-400 py-10 text-xs">尚無清單，快去買買買！</div></div></div>
+                    <div v-else-if="toolSubTab === 'phrase'" class="pb-24"><div class="grid grid-cols-2 gap-3 mx-1"><div v-for="(phrase, idx) in phrasebook" :key="idx" class="bg-white card-rounded p-4 border border-slate-50 shadow-sm active:scale-95 transition cursor-pointer hover:border-[var(--color-primary)]" @click="showPhraseModal(phrase)"><div class="text-xs text-slate-400 mb-1">{{ phrase.cat }}</div><div class="font-black text-slate-700 text-lg mb-1">{{ phrase.cn }}</div><div class="text-[10px] text-[var(--color-primary)]">{{ phrase.pron }}</div></div></div></div>
+                    <div v-else-if="toolSubTab === 'car'" class="pb-24"><div class="bg-white card-rounded p-6 border border-slate-50 shadow-sm mx-1"><h3 class="font-bold text-slate-800 mb-4 flex items-center"><i class="fas fa-car mr-2 text-[var(--color-primary)]"></i> 停車/租車紀錄</h3><div class="mb-4"><label class="block text-xs font-bold text-slate-400 mb-1">車牌號碼</label><input v-model="carInfo.plate" @input="saveCarInfo" class="w-full bg-slate-50 border-2 border-slate-200 rounded-xl p-4 text-center text-3xl font-black text-slate-700 tracking-widest uppercase focus:border-[var(--color-primary)] focus:outline-none" placeholder="12-34"></div><div class="flex gap-3 mb-4"><div class="flex-1"><label class="block text-xs font-bold text-slate-400 mb-1">樓層 Floor</label><input v-model="carInfo.floor" @input="saveCarInfo" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-center font-bold text-slate-700 focus:border-[var(--color-primary)] focus:outline-none" placeholder="B1"></div><div class="flex-1"><label class="block text-xs font-bold text-slate-400 mb-1">區域 Zone</label><input v-model="carInfo.zone" @input="saveCarInfo" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-center font-bold text-slate-700 focus:border-[var(--color-primary)] focus:outline-none" placeholder="G區"></div></div><div><label class="block text-xs font-bold text-slate-400 mb-1">備註</label><textarea v-model="carInfo.note" @input="saveCarInfo" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm text-slate-700 focus:border-[var(--color-primary)] focus:outline-none" rows="3" placeholder="例如：停在電梯口附近..."></textarea></div></div></div>
+                </div>
+
+                <!-- Tab 4: 資訊 (順序調整) -->
                 <div v-else-if="activeTab === 'info'" key="info">
+                    <!-- 1. 實時匯率 -->
                     <div class="bg-white card-rounded shadow-sm p-6 mb-6 border border-slate-50 mt-2 mx-1 relative overflow-hidden">
                         <h3 class="font-bold text-[var(--color-primary)] mb-4 flex items-center text-lg"><i class="fas fa-coins text-yellow-400 mr-3 text-xl"></i> 實時匯率</h3>
                         <div class="flex items-center space-x-3 mb-3 relative z-10">
@@ -285,25 +234,31 @@
                         <div class="text-right text-xs text-slate-400 font-bold px-1"><span v-if="exchangeRate">1 HKD ≈ {{ exchangeRate.toFixed(2) }} JPY</span><span v-else><i class="fas fa-spinner fa-spin"></i> 載入中...</span></div>
                     </div>
 
+                    <!-- 2. 航班資訊 -->
                     <div class="bg-white card-rounded shadow-sm mb-6 overflow-hidden border border-slate-50 mx-1">
-                        <div class="bg-[var(--color-primary)] px-6 py-4 flex justify-between items-center">
-                            <h3 class="text-white font-bold text-base tracking-wide"><i class="fas fa-plane-departure mr-3"></i>航班資訊</h3>
-                            <span class="text-white/80 text-[10px] bg-white/20 px-3 py-1 rounded-full font-bold">HK Airlines</span>
-                        </div>
+                        <div class="bg-[var(--color-primary)] px-6 py-4 flex justify-between items-center"><h3 class="text-white font-bold text-base tracking-wide"><i class="fas fa-plane-departure mr-3"></i>航班資訊</h3><span class="text-white/80 text-[10px] bg-white/20 px-3 py-1 rounded-full font-bold">HK Airlines</span></div>
                         <div class="p-6 space-y-8">
-                            <div class="flex items-center justify-between relative">
-                                <div class="text-center w-1/3"><div class="text-3xl font-black text-slate-700">HKG</div><div class="text-xs text-white font-bold bg-slate-400 rounded-lg px-2 py-1 mt-1 inline-block">08:35</div></div>
-                                <div class="text-center w-1/3 flex flex-col items-center px-2"><div class="text-[10px] text-slate-400 font-bold mb-1">HX690</div><div class="w-full flex items-center"><div class="h-[2px] bg-slate-200 w-full rounded-full"></div><i class="fas fa-plane text-slate-300 mx-2 text-sm"></i><div class="h-[2px] bg-slate-200 w-full rounded-full"></div></div><div class="text-[10px] text-slate-400 mt-1 font-bold">5h 45m</div></div>
-                                <div class="text-center w-1/3"><div class="text-3xl font-black text-slate-700">CTS</div><div class="text-xs text-white font-bold bg-[var(--color-primary)] rounded-lg px-2 py-1 mt-1 inline-block">14:20</div></div>
-                            </div>
-                            <div class="flex items-center justify-between relative">
-                                <div class="text-center w-1/3"><div class="text-3xl font-black text-slate-700">CTS</div><div class="text-xs text-white font-bold bg-[var(--color-primary)] rounded-lg px-2 py-1 mt-1 inline-block">16:15</div></div>
-                                <div class="text-center w-1/3 flex flex-col items-center px-2"><div class="text-[10px] text-slate-400 font-bold mb-1">HX693</div><div class="w-full flex items-center"><div class="h-[2px] bg-slate-200 w-full rounded-full"></div><i class="fas fa-plane text-slate-300 mx-2 text-sm transform rotate-180"></i><div class="h-[2px] bg-slate-200 w-full rounded-full"></div></div><div class="text-[10px] text-slate-400 mt-1 font-bold">6h 45m</div></div>
-                                <div class="text-center w-1/3"><div class="text-3xl font-black text-slate-700">HKG</div><div class="text-xs text-white font-bold bg-slate-400 rounded-lg px-2 py-1 mt-1 inline-block">22:00</div></div>
-                            </div>
+                            <div class="flex items-center justify-between relative"><div class="text-center w-1/3"><div class="text-3xl font-black text-slate-700">HKG</div><div class="text-xs text-white font-bold bg-slate-400 rounded-lg px-2 py-1 mt-1 inline-block">08:35</div></div><div class="text-center w-1/3 flex flex-col items-center px-2"><div class="text-[10px] text-slate-400 font-bold mb-1">HX690</div><div class="w-full flex items-center"><div class="h-[2px] bg-slate-200 w-full rounded-full"></div><i class="fas fa-plane text-slate-300 mx-2 text-sm"></i><div class="h-[2px] bg-slate-200 w-full rounded-full"></div></div><div class="text-[10px] text-slate-400 mt-1 font-bold">5h 45m</div></div><div class="text-center w-1/3"><div class="text-3xl font-black text-slate-700">CTS</div><div class="text-xs text-white font-bold bg-[var(--color-primary)] rounded-lg px-2 py-1 mt-1 inline-block">14:20</div></div></div>
+                            <div class="flex items-center justify-between relative"><div class="text-center w-1/3"><div class="text-3xl font-black text-slate-700">CTS</div><div class="text-xs text-white font-bold bg-[var(--color-primary)] rounded-lg px-2 py-1 mt-1 inline-block">16:15</div></div><div class="text-center w-1/3 flex flex-col items-center px-2"><div class="text-[10px] text-slate-400 font-bold mb-1">HX693</div><div class="w-full flex items-center"><div class="h-[2px] bg-slate-200 w-full rounded-full"></div><i class="fas fa-plane text-slate-300 mx-2 text-sm transform rotate-180"></i><div class="h-[2px] bg-slate-200 w-full rounded-full"></div></div><div class="text-[10px] text-slate-400 mt-1 font-bold">6h 45m</div></div><div class="text-center w-1/3"><div class="text-3xl font-black text-slate-700">HKG</div><div class="text-xs text-white font-bold bg-slate-400 rounded-lg px-2 py-1 mt-1 inline-block">22:00</div></div></div>
                         </div>
                     </div>
 
+                    <!-- 3. 緊急救援 -->
+                    <div class="bg-red-50 card-rounded shadow-sm mb-6 border border-red-100 mx-1 p-5 relative overflow-hidden">
+                        <div class="absolute -right-4 -top-4 text-red-100 text-8xl opacity-50 rotate-12"><i class="fas fa-ambulance"></i></div>
+                        <h3 class="font-bold text-red-700 mb-4 flex items-center relative z-10"><i class="fas fa-exclamation-circle mr-2 animate-pulse"></i> 緊急救援 / 道路情報</h3>
+                        <div class="grid grid-cols-3 gap-2 mb-4 relative z-10">
+                            <a href="tel:110" class="bg-white border border-red-200 p-3 rounded-xl flex flex-col items-center justify-center hover:bg-red-100 transition text-center"><i class="fas fa-user-shield text-xl text-red-500 mb-1"></i><span class="text-xs font-black text-red-700">警察 110</span></a>
+                            <a href="tel:119" class="bg-white border border-red-200 p-3 rounded-xl flex flex-col items-center justify-center hover:bg-red-100 transition text-center"><i class="fas fa-ambulance text-xl text-red-500 mb-1"></i><span class="text-xs font-black text-red-700">救護 119</span></a>
+                            <a href="tel:#8139" class="bg-white border border-red-200 p-3 rounded-xl flex flex-col items-center justify-center hover:bg-red-100 transition text-center"><i class="fas fa-tools text-xl text-red-500 mb-1"></i><span class="text-xs font-black text-red-700">JAF #8139</span></a>
+                        </div>
+                        <div class="space-y-2 relative z-10">
+                             <a href="https://info-road.hdb.hkd.mlit.go.jp/en/" target="_blank" class="block bg-white hover:bg-red-50 p-3 rounded-xl transition border border-red-100"><div class="flex justify-between items-center"><span class="text-sm font-bold text-slate-700"><i class="fas fa-video text-slate-400 mr-2"></i> 路況攝影機 (Live)</span><i class="fas fa-external-link-alt text-xs text-slate-400"></i></div></a>
+                            <a href="http://northern-road.jp/navi/eng/" target="_blank" class="block bg-white hover:bg-red-50 p-3 rounded-xl transition border border-red-100"><div class="flex justify-between items-center"><span class="text-sm font-bold text-slate-700"><i class="fas fa-route text-slate-400 mr-2"></i> 北之道導航 (冬季時間)</span><i class="fas fa-external-link-alt text-xs text-slate-400"></i></div></a>
+                        </div>
+                    </div>
+
+                    <!-- 4. 住宿清單 -->
                     <div class="bg-white card-rounded shadow-sm mb-6 border border-slate-50 mx-1">
                         <div class="px-6 py-5 border-b border-slate-50 flex items-center"><div class="bg-indigo-50 p-2 rounded-lg mr-3"><i class="fas fa-bed text-indigo-500"></i></div><h3 class="font-bold text-slate-800 text-lg">住宿清單</h3></div>
                         <div class="divide-y divide-slate-50">
@@ -314,8 +269,6 @@
                             </div>
                         </div>
                     </div>
-                    
-                    <div class="text-center mb-28 opacity-30"><i class="fas fa-snowman text-5xl mb-3 text-[var(--color-primary)]"></i><p class="text-xs font-bold tracking-widest text-[var(--color-primary)]">Have a nice trip!</p></div>
                 </div>
             </transition>
         </main>
@@ -323,21 +276,78 @@
         <nav class="floating-nav flex justify-between items-center py-2 px-6">
             <button @click="activeTab = 'itinerary'" class="flex-1 py-3 flex flex-col items-center transition duration-300 relative group" :class="activeTab === 'itinerary' ? 'text-white' : 'text-slate-500'"><i class="fas fa-calendar-alt text-xl mb-1 transition-transform group-active:scale-90"></i><span class="text-[10px] font-bold">行程</span></button>
             <button @click="activeTab = 'expenses'" class="flex-1 py-3 flex flex-col items-center transition duration-300 relative group" :class="activeTab === 'expenses' ? 'text-emerald-400' : 'text-slate-500'"><i class="fas fa-wallet text-xl mb-1 transition-transform group-active:scale-90"></i><span class="text-[10px] font-bold">分帳</span></button>
+            <button @click="activeTab = 'tools'" class="flex-1 py-3 flex flex-col items-center transition duration-300 relative group" :class="activeTab === 'tools' ? 'text-yellow-400' : 'text-slate-500'"><i class="fas fa-briefcase text-xl mb-1 transition-transform group-active:scale-90"></i><span class="text-[10px] font-bold">工具</span></button>
             <button @click="activeTab = 'info'" class="flex-1 py-3 flex flex-col items-center transition duration-300 relative group" :class="activeTab === 'info' ? 'text-indigo-400' : 'text-slate-500'"><i class="fas fa-book-open text-xl mb-1 transition-transform group-active:scale-90"></i><span class="text-[10px] font-bold">資訊</span></button>
         </nav>
 
+        <!-- Expense Modal -->
         <div v-if="showExpenseModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm" @click.self="showExpenseModal = false">
             <div class="bg-white card-rounded w-full max-w-sm p-8 shadow-2xl transform transition-all border border-white">
-                <h3 class="text-xl font-bold mb-8 text-slate-800 flex items-center"><i class="fas fa-edit mr-3 text-[var(--color-primary)]"></i>新增支出</h3>
+                <h3 class="text-xl font-bold mb-8 text-slate-800 flex items-center"><i class="fas fa-edit mr-3 text-[var(--color-primary)]"></i>
+                    {{ expenseMode === 'expense' ? '新增支出' : '公費入金' }}
+                </h3>
+                <div class="flex p-1 bg-slate-100 rounded-xl mb-6">
+                    <button @click="switchExpenseMode('expense')" class="flex-1 py-2 rounded-lg text-sm font-bold transition-all" :class="expenseMode === 'expense' ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-400'">支出</button>
+                    <button @click="switchExpenseMode('deposit')" class="flex-1 py-2 rounded-lg text-sm font-bold transition-all" :class="expenseMode === 'deposit' ? 'bg-emerald-100 text-emerald-700 shadow-sm' : 'text-slate-400'">入金</button>
+                </div>
                 <div class="space-y-6">
-                    <div><label class="block text-xs font-black text-slate-400 mb-2 ml-1 tracking-wider uppercase">金額 (JPY)</label><input type="number" v-model="newExpense.amount" class="w-full bg-[var(--color-bg)] border-none rounded-2xl p-4 text-xl text-slate-800 font-bold focus:ring-2 focus:ring-[var(--color-primary)] transition font-mono" placeholder="1000" inputmode="numeric"></div>
-                    <div><label class="block text-xs font-black text-slate-400 mb-2 ml-1 tracking-wider uppercase">項目說明</label><input type="text" v-model="newExpense.description" class="w-full bg-[var(--color-bg)] border-none rounded-2xl p-4 text-base text-slate-800 font-bold focus:ring-2 focus:ring-[var(--color-primary)] transition" placeholder="例如: 拉麵"></div>
-                    <div><label class="block text-xs font-black text-slate-400 mb-2 ml-1 tracking-wider uppercase">誰先付的？</label><div class="relative"><select v-model="newExpense.payer" class="w-full bg-[var(--color-bg)] border-none rounded-2xl p-4 text-base text-slate-800 font-bold focus:ring-2 focus:ring-[var(--color-primary)] appearance-none"><option v-for="person in people" :key="person" :value="person">{{ person }}</option></select><i class="fas fa-chevron-down absolute right-5 top-5 text-slate-400 pointer-events-none"></i></div></div>
+                    <div>
+                        <label class="block text-xs font-black text-slate-400 mb-2 ml-1 tracking-wider uppercase">金額 (JPY)</label>
+                        <input type="number" v-model="newExpense.amount" class="w-full bg-[var(--color-bg)] border-none rounded-2xl p-4 text-xl text-slate-800 font-bold focus:ring-2 focus:ring-[var(--color-primary)] transition font-mono" placeholder="1000" inputmode="numeric">
+                    </div>
+                    <div v-if="expenseMode === 'expense'">
+                        <label class="block text-xs font-black text-slate-400 mb-2 ml-1 tracking-wider uppercase">項目說明</label>
+                        <input type="text" v-model="newExpense.description" class="w-full bg-[var(--color-bg)] border-none rounded-2xl p-4 text-base text-slate-800 font-bold focus:ring-2 focus:ring-[var(--color-primary)] transition" placeholder="例如: 拉麵">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-black text-slate-400 mb-2 ml-1 tracking-wider uppercase">{{ expenseMode === 'expense' ? '誰先付的？' : '誰繳公費？' }}</label>
+                        <div class="relative">
+                            <select v-model="newExpense.payer" class="w-full bg-[var(--color-bg)] border-none rounded-2xl p-4 text-base text-slate-800 font-bold focus:ring-2 focus:ring-[var(--color-primary)] appearance-none">
+                                <option v-for="person in people" :key="person" :value="person">{{ person }}</option>
+                            </select>
+                            <i class="fas fa-chevron-down absolute right-5 top-5 text-slate-400 pointer-events-none"></i>
+                        </div>
+                    </div>
                 </div>
                 <div class="mt-10 flex space-x-4">
                     <button @click="showExpenseModal = false" class="flex-1 py-4 bg-slate-100 text-slate-500 rounded-2xl font-bold hover:bg-slate-200 transition">取消</button>
-                    <button @click="addExpense" :disabled="isSaving" class="flex-1 py-4 bg-[var(--color-primary)] text-white rounded-2xl font-bold hover:opacity-90 transition shadow-lg shadow-blue-900/20 flex justify-center items-center"><span v-if="isSaving"><i class="fas fa-circle-notch fa-spin mr-2"></i>儲存中</span><span v-else>儲存</span></button>
+                    <button @click="addExpense" :disabled="isSaving" class="flex-1 py-4 text-white rounded-2xl font-bold hover:opacity-90 transition shadow-lg shadow-blue-900/20 flex justify-center items-center" :class="expenseMode === 'expense' ? 'bg-[var(--color-primary)]' : 'bg-emerald-500'">
+                        <span v-if="isSaving"><i class="fas fa-circle-notch fa-spin mr-2"></i>儲存中</span>
+                        <span v-else>儲存</span>
+                    </button>
                 </div>
+            </div>
+        </div>
+        
+        <div v-if="showSettlementModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm" @click.self="showSettlementModal = false">
+            <div class="bg-white card-rounded w-full max-w-sm p-6 shadow-2xl transform transition-all border border-white max-h-[80vh] overflow-y-auto">
+                <h3 class="text-xl font-bold mb-4 text-slate-800 flex items-center"><i class="fas fa-calculator mr-3 text-[var(--color-primary)]"></i>結算建議</h3>
+                <div class="bg-slate-50 rounded-xl p-4 mb-4">
+                    <div class="text-xs text-slate-400 font-bold mb-1">總支出 / 平均每人</div>
+                    <div class="flex justify-between items-end">
+                        <span class="text-2xl font-black text-[var(--color-primary)]">¥{{ settlementTotal.toLocaleString() }}</span>
+                        <span class="text-sm font-bold text-slate-600">¥{{ Math.ceil(settlementTotal / (people.length - 1)).toLocaleString() }} <span class="text-[10px] font-normal">/人</span></span>
+                    </div>
+                    <div class="text-[10px] text-slate-400 mt-1 text-right">*已排除公數與入金</div>
+                </div>
+                <div v-if="settlementPlan.length > 0" class="space-y-3">
+                    <div v-for="(plan, idx) in settlementPlan" :key="idx" class="flex items-center justify-between bg-white border border-slate-100 p-3 rounded-xl shadow-sm">
+                        <div class="flex items-center"><span class="font-bold text-slate-700">{{ plan.from }}</span><i class="fas fa-long-arrow-alt-right mx-2 text-slate-300"></i><span class="font-bold text-[var(--color-primary)]">{{ plan.to }}</span></div>
+                        <span class="font-mono font-bold text-emerald-500">¥{{ plan.amount.toLocaleString() }}</span>
+                    </div>
+                </div>
+                <div v-else class="text-center py-8 text-slate-400 text-sm">目前收支平衡 🎉</div>
+                <button @click="showSettlementModal = false" class="w-full mt-6 py-3 bg-slate-100 text-slate-500 rounded-xl font-bold hover:bg-slate-200 transition">關閉</button>
+            </div>
+        </div>
+
+        <div v-if="selectedPhrase" class="fixed inset-0 z-50 flex items-center justify-center p-6 bg-slate-900/80 backdrop-blur-sm" @click="selectedPhrase = null">
+            <div class="bg-white card-rounded w-full max-w-sm p-8 text-center shadow-2xl relative" @click.stop>
+                <div class="text-xs text-[var(--color-primary)] font-bold mb-2 uppercase tracking-widest">{{ selectedPhrase.cat }}</div>
+                <div class="text-4xl font-black text-slate-800 mb-4 leading-normal">{{ selectedPhrase.jp }}</div>
+                <div class="text-base text-slate-500 mb-6 font-mono">{{ selectedPhrase.pron }}</div>
+                <div class="text-lg font-bold text-[var(--color-primary)] bg-[var(--color-bg)] py-3 px-4 rounded-xl inline-block">{{ selectedPhrase.cn }}</div>
+                <div class="mt-8 text-xs text-slate-300">點擊背景關閉</div>
             </div>
         </div>
 
@@ -381,7 +391,28 @@
                     '冰雪之門': '必點：帝王蟹全餐'
                 };
 
+                const packingItems = [
+                    {text: '護照 + 影本', checked: false}, {text: '國際駕照 + 台灣駕照/日文譯本', checked: false},
+                    {text: 'VJW 截圖 (入境/海關)', checked: false}, {text: '現金 (日幣) + 信用卡 (JCB佳)', checked: false},
+                    {text: 'Sim卡 / 漫遊開通', checked: false}, {text: '行動電源 + 充電線', checked: false},
+                    {text: '雪靴 (防滑防水)', checked: false}, {text: '發熱衣 / 發熱褲', checked: false},
+                    {text: '手套 (防水) + 毛帽', checked: false}, {text: '墨鏡 (雪地反光強)', checked: false},
+                    {text: '個人常備藥 / 暈車藥', checked: false}, {text: '保濕乳液 / 護唇膏', checked: false},
+                    {text: '暖暖包 (貼式/手握)', checked: false}, {text: '牙刷牙膏 (部分飯店不主動提供)', checked: false}
+                ];
+
+                const phrasebookData = [
+                    {cat: '餐廳', jp: '英語のメニューはありますか', pron: 'Eigo no menyu wa arimasuka', cn: '有英文菜單嗎？'},
+                    {cat: '餐廳', jp: '会計をお願いします', pron: 'Kaikei o onegaishimasu', cn: '我要結帳'},
+                    {cat: '餐廳', jp: 'おすすめは何ですか', pron: 'Osusume wa nan desu ka', cn: '有什麼推薦的嗎？'},
+                    {cat: '自駕', jp: '満タン、レギュラーで', pron: 'Mantan, Regyura de', cn: '加滿油 (Regular)'},
+                    {cat: '自駕', jp: '駐車場はどこですか', pron: 'Chushajo wa doko desu ka', cn: '停車場在哪裡？'},
+                    {cat: '求助', jp: 'トイレはどこですか', pron: 'Toire wa doko desu ka', cn: '廁所在哪裡？'},
+                    {cat: '求助', jp: 'すみません', pron: 'Sumimasen', cn: '不好意思 / 請問'}
+                ];
+
                 const activeTab = ref('itinerary');
+                const toolSubTab = ref('packing');
                 const loading = ref(false);
                 const syncingExpenses = ref(false);
                 const isSaving = ref(false);
@@ -390,13 +421,100 @@
                 const weather = ref(null);
                 const usingMockData = ref(false);
                 const showExpenseModal = ref(false);
+                const showSettlementModal = ref(false);
+                const settlementPlan = ref([]);
+                const settlementTotal = ref(0);
+                const selectedPhrase = ref(null);
                 const expenses = ref([]);
                 const newExpense = ref({ amount: '', description: '', payer: '公數' });
+                const expenseMode = ref('expense');
                 const selectedDay = ref(null);
                 const exchangeRate = ref(null);
                 const calcHkd = ref('');
                 const calcJpy = ref('');
-                const itineraryContainer = ref(null); // ref for scrolling
+                const itineraryContainer = ref(null);
+                
+                const memos = ref(JSON.parse(localStorage.getItem('hokkaido_memos')) || {});
+                const packingList = ref(JSON.parse(localStorage.getItem('hokkaido_packing')) || packingItems);
+                const shoppingList = ref(JSON.parse(localStorage.getItem('hokkaido_shopping')) || []);
+                const newShopItem = ref({text: '', who: ''});
+                const carInfo = ref(JSON.parse(localStorage.getItem('hokkaido_car')) || { plate: '', floor: '', zone: '', note: '' });
+
+                const saveCarInfo = () => { localStorage.setItem('hokkaido_car', JSON.stringify(carInfo.value)); };
+                
+                const isDeposit = (exp) => {
+                    return exp.description && exp.description.includes('(入金)');
+                };
+
+                const switchExpenseMode = (mode) => {
+                    expenseMode.value = mode;
+                    if (mode === 'deposit') {
+                        newExpense.value.payer = 'IVAN'; 
+                        newExpense.value.description = '公費入金';
+                    } else {
+                        newExpense.value.payer = '公數';
+                        newExpense.value.description = '';
+                    }
+                };
+
+                const publicFundBalance = computed(() => {
+                    let balance = 0;
+                    expenses.value.forEach(exp => {
+                        const amount = parseInt(exp.amount) || 0;
+                        if (exp.payer === '公數') {
+                            balance -= amount;
+                        }
+                        if (isDeposit(exp)) {
+                            balance += amount;
+                        }
+                    });
+                    return balance;
+                });
+
+                const calculateSettlement = () => {
+                    const balance = {};
+                    people.forEach(p => { if(p !== '公數') balance[p] = 0; });
+                    
+                    let total = 0;
+                    expenses.value.forEach(exp => {
+                        if (exp.payer !== '公數' && !isDeposit(exp)) {
+                            const amount = parseInt(exp.amount);
+                            balance[exp.payer] += amount;
+                            total += amount;
+                        }
+                    });
+
+                    settlementTotal.value = total;
+                    const personCount = people.length - 1;
+                    const average = total / personCount;
+
+                    const diffs = [];
+                    for (const person in balance) {
+                        diffs.push({ name: person, val: balance[person] - average });
+                    }
+
+                    diffs.sort((a, b) => a.val - b.val);
+                    const plan = [];
+                    
+                    let i = 0; 
+                    let j = diffs.length - 1; 
+
+                    while (i < j) {
+                        const debtor = diffs[i];
+                        const creditor = diffs[j];
+                        if (Math.abs(debtor.val) < 1 && Math.abs(creditor.val) < 1) break; 
+                        const amount = Math.min(Math.abs(debtor.val), creditor.val);
+                        if (amount > 0) {
+                            plan.push({ from: debtor.name, to: creditor.name, amount: Math.ceil(amount) });
+                        }
+                        debtor.val += amount;
+                        creditor.val -= amount;
+                        if (Math.abs(debtor.val) < 1) i++;
+                        if (Math.abs(creditor.val) < 1) j--;
+                    }
+                    settlementPlan.value = plan;
+                    showSettlementModal.value = true;
+                };
 
                 const fetchItinerary = () => {
                     loading.value = true;
@@ -460,14 +578,31 @@
                 };
 
                 const addExpense = async () => {
-                    if (!newExpense.value.amount || !newExpense.value.description) return;
+                    if (!newExpense.value.amount) return;
                     if (!APPS_SCRIPT_URL) { alert("請先設定 Apps Script 網址！"); return; }
                     isSaving.value = true;
-                    const expenseData = { amount: parseInt(newExpense.value.amount), description: newExpense.value.description, payer: newExpense.value.payer };
+                    
+                    let finalDesc = newExpense.value.description;
+                    if (expenseMode.value === 'deposit') {
+                        finalDesc = finalDesc.includes('(入金)') ? finalDesc : `(入金) ${finalDesc}`;
+                    }
+
+                    const expenseData = { 
+                        amount: parseInt(newExpense.value.amount), 
+                        description: finalDesc, 
+                        payer: newExpense.value.payer 
+                    };
+                    
                     try {
                         await fetch(APPS_SCRIPT_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify(expenseData) });
                         expenses.value.unshift({ ...expenseData, date: new Date().toISOString(), id: 'temp-' + Date.now() });
-                        newExpense.value = { amount: '', description: '', payer: '公數' };
+                        newExpense.value.amount = '';
+                        if (expenseMode.value === 'deposit') {
+                            newExpense.value.description = '公費入金';
+                        } else {
+                            newExpense.value.description = '';
+                            newExpense.value.payer = '公數';
+                        }
                         showExpenseModal.value = false;
                         setTimeout(fetchExpenses, 2000);
                     } catch (e) { alert("儲存失敗"); } finally { isSaving.value = false; }
@@ -483,15 +618,54 @@
                         setTimeout(fetchExpenses, 2000);
                     } catch (e) { alert("刪除失敗"); } finally { isDeleting.value = null; }
                 };
+                
+                const togglePacking = (idx) => {
+                    packingList.value[idx].checked = !packingList.value[idx].checked;
+                    localStorage.setItem('hokkaido_packing', JSON.stringify(packingList.value));
+                };
+                
+                const addShopItem = () => {
+                    if(!newShopItem.value.text) return;
+                    shoppingList.value.push({ text: newShopItem.value.text, who: newShopItem.value.who || '自己', checked: false });
+                    localStorage.setItem('hokkaido_shopping', JSON.stringify(shoppingList.value));
+                    newShopItem.value = { text: '', who: '' };
+                };
+                
+                const toggleShop = (idx) => {
+                    shoppingList.value[idx].checked = !shoppingList.value[idx].checked;
+                    localStorage.setItem('hokkaido_shopping', JSON.stringify(shoppingList.value));
+                };
+                
+                const removeShopItem = (idx) => {
+                    if(confirm('刪除此代購項目？')) {
+                        shoppingList.value.splice(idx, 1);
+                        localStorage.setItem('hokkaido_shopping', JSON.stringify(shoppingList.value));
+                    }
+                };
+                
+                const showPhraseModal = (phrase) => { selectedPhrase.value = phrase; };
+                
+                const getItemKey = (item) => {
+                    return `${item.Date}-${item.Time}-${item.Activity}`;
+                };
+                const saveMemos = () => {
+                    localStorage.setItem('hokkaido_memos', JSON.stringify(memos.value));
+                };
 
                 const refreshAll = () => { fetchItinerary(); fetchExpenses(); fetchWeather(); fetchRate(); };
 
-                // 動態 Banner 邏輯
                 const bannerImage = computed(() => {
                     if (dateKeys.value.length === 0 || !selectedDay.value) return '1.jpg';
                     const index = dateKeys.value.indexOf(selectedDay.value);
-                    // Index 0 (Day 1) -> 1.jpg, Index 1 (Day 2) -> 2.jpg, etc.
                     return `${index + 1}.jpg`;
+                });
+                
+                const countdown = computed(() => {
+                    const today = new Date();
+                    const tripStart = new Date('2026-03-07');
+                    const diffTime = tripStart - today;
+                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
+                    return diffDays > 0 ? diffDays : 0;
                 });
 
                 const sunsetTime = computed(() => {
@@ -564,7 +738,6 @@
                 const formatShortDate = (dateStr) => { if(!dateStr) return ''; try { const d = new Date(dateStr); return `${d.getMonth() + 1}/${d.getDate()}`; } catch (e) { return ''; } }
                 const getDayOfWeek = (dateStr) => { try { return ['週日', '週一', '週二', '週三', '週四', '週五', '週六'][new Date(dateStr).getDay()]; } catch (e) { return ''; } };
 
-                // 捲動置頂邏輯
                 watch(selectedDay, () => {
                     if (itineraryContainer.value) {
                         itineraryContainer.value.scrollTop = 0;
@@ -574,14 +747,19 @@
                 onMounted(() => { refreshAll(); });
 
                 return {
-                    people, activeTab, loading, weather, sunsetTime, groupedItinerary, dateKeys, selectedDay, expenses,
+                    people, activeTab, toolSubTab, loading, weather, sunsetTime, groupedItinerary, dateKeys, selectedDay, expenses,
                     totalExpense, showExpenseModal, newExpense, addExpense, deleteExpense, refreshAll, syncingExpenses, isSaving, isDeleting,
                     formatDate, formatShortDate, getDayOfWeek, getCategoryBorderClass, getCategoryIconClass, getCategoryIcon, getFoodRecommendation,
-                    SHEET_CSV_URL, APPS_SCRIPT_URL, getPersonTotal, usingMockData, bannerImage,
-                    exchangeRate, calcHkd, calcJpy, updateFromHkd, updateFromJpy, hotelList, itineraryContainer
+                    SHEET_CSV_URL, APPS_SCRIPT_URL, getPersonTotal, usingMockData, bannerImage, countdown,
+                    exchangeRate, calcHkd, calcJpy, updateFromHkd, updateFromJpy, hotelList, itineraryContainer,
+                    packingList, shoppingList, newShopItem, togglePacking, addShopItem, toggleShop, removeShopItem, phrasebook: phrasebookData, selectedPhrase, showPhraseModal,
+                    memos, saveMemos, getItemKey, carInfo, saveCarInfo, showSettlementModal, settlementPlan, calculateSettlement, settlementTotal,
+                    expenseMode, switchExpenseMode, isDeposit, publicFundBalance
                 };
             }
         }).mount('#app');
     </script>
 </body>
 </html>
+
+
