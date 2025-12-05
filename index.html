@@ -78,56 +78,59 @@
                 >
             </transition>
             
-            <!-- 極淡遮罩 (5%) -->
+            <!-- 白色遮罩：5% -->
             <div class="absolute inset-0 bg-white/5 z-10"></div>
 
-            <div class="relative z-20 px-6 py-6 flex justify-between items-start h-full">
-                <div>
-                    <!-- 標題：背景改為極淡 (10%) + 毛玻璃 -->
-                    <h1 class="text-3xl font-black tracking-wider flex items-center mb-3 text-[var(--color-primary)] drop-shadow-md bg-white/10 px-4 py-2 rounded-2xl backdrop-blur-md inline-flex border border-white/20">
-                        <i class="fas fa-snowflake text-sky-500 mr-3 animate-pulse"></i>
-                        Hokkaido
-                    </h1>
-                    
-                    <div class="flex flex-col space-y-2">
-                        <!-- 天氣資訊：背景改為極淡 (30%) + 毛玻璃 -->
-                        <div class="flex items-center space-x-3 text-sm text-slate-800 font-bold" v-if="weather">
-                            <span class="flex items-center bg-white/30 px-2.5 py-1 rounded-lg backdrop-blur-sm border border-white/20 shadow-sm">
-                                <i class="fas fa-temperature-low mr-1.5 text-[var(--color-primary)]"></i>{{ weather.current_weather.temperature }}°C
-                            </span>
-                            <span class="flex items-center text-orange-700 bg-white/30 px-2.5 py-1 rounded-lg backdrop-blur-sm border border-white/20 shadow-sm">
-                                <i class="fas fa-cloud-sun mr-1.5"></i>日落 {{ sunsetTime }}
-                            </span>
-                        </div>
-                        <p class="text-xs text-slate-600 font-bold mt-1 bg-white/30 px-2 py-1 rounded-lg w-max backdrop-blur-sm" v-else>
-                            <i class="fas fa-circle-notch fa-spin mr-1"></i>讀取天氣中...
-                        </p>
-                        
-                        <div v-if="weather" class="mt-1">
-                            <a href="https://weathernews.jp/onebox/43.06417/141.34694/temp=c" target="_blank" class="text-[10px] text-slate-700 hover:text-[var(--color-primary)] transition flex items-center bg-white/30 px-3 py-1 rounded-full w-max border border-white/20 font-bold backdrop-blur-sm shadow-sm">
-                                Weathernews <i class="fas fa-external-link-alt ml-1.5"></i>
-                            </a>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="flex flex-col items-end h-full justify-between">
-                    <!-- 重新整理按鈕 -->
-                    <button @click="refreshAll" class="w-10 h-10 flex items-center justify-center rounded-full bg-white/30 text-slate-700 hover:bg-white/50 transition active:scale-90 shadow-md backdrop-blur-md border border-white/20">
-                        <i class="fas fa-sync-alt" :class="{'animate-spin': loading}"></i>
-                    </button>
+            <!-- 上層內容：標題與重整按鈕 -->
+            <div class="absolute top-0 left-0 w-full p-6 flex justify-between items-start z-20">
+                <h1 class="text-3xl font-black tracking-wider flex items-center text-[var(--color-primary)] drop-shadow-md bg-white/10 px-3 py-1 rounded-xl backdrop-blur-md border border-white/20">
+                    <i class="fas fa-snowflake text-sky-500 mr-2 animate-pulse text-2xl"></i>
+                    Hokkaido
+                </h1>
+                <button @click="refreshAll" class="w-10 h-10 flex items-center justify-center rounded-full bg-white/30 text-slate-700 hover:bg-white/50 transition active:scale-90 shadow-md backdrop-blur-md border border-white/20">
+                    <i class="fas fa-sync-alt" :class="{'animate-spin': loading}"></i>
+                </button>
+            </div>
 
-                    <!-- ★★★ 倒數計時 (移至右下角) ★★★ -->
-                    <div class="mb-1">
-                        <span class="bg-[var(--color-primary)]/90 text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-lg backdrop-blur-sm flex items-center border border-white/20">
+            <!-- ★★★ 底部資訊列 (溫度/日落 - WeatherNews - 倒數) ★★★ -->
+            <div class="absolute bottom-4 left-0 w-full px-4 z-20">
+                
+                <!-- 1. Weathernews (絕對置中) -->
+                <div class="absolute left-1/2 transform -translate-x-1/2 bottom-0" v-if="weather">
+                    <a href="https://weathernews.jp/onebox/43.06417/141.34694/temp=c" target="_blank" class="text-[10px] text-slate-700 hover:text-[var(--color-primary)] transition flex items-center bg-white/80 px-3 py-1.5 rounded-full border border-white/50 font-bold shadow-sm whitespace-nowrap">
+                        Weathernews <i class="fas fa-external-link-alt ml-1"></i>
+                    </a>
+                </div>
+
+                <!-- 左右兩側資訊 (Flex 佈局) -->
+                <div class="flex justify-between items-end w-full">
+                    
+                    <!-- 2. 左下角：溫度 + 日落 -->
+                    <div class="flex items-center space-x-1.5 text-xs text-slate-800 font-bold" v-if="weather">
+                        <span class="flex items-center bg-white/80 px-2 py-1 rounded-lg shadow-sm backdrop-blur-sm">
+                            <i class="fas fa-temperature-low mr-1 text-[var(--color-primary)]"></i>{{ weather.current_weather.temperature }}°
+                        </span>
+                        <span class="flex items-center text-orange-700 bg-white/80 px-2 py-1 rounded-lg shadow-sm backdrop-blur-sm">
+                            <i class="fas fa-cloud-sun mr-1"></i>{{ sunsetTime }}
+                        </span>
+                    </div>
+                    <div v-else class="bg-white/60 px-2 py-1 rounded-lg text-xs font-bold text-slate-500">
+                        <i class="fas fa-circle-notch fa-spin mr-1"></i>載入中...
+                    </div>
+
+                    <!-- 3. 右下角：倒數計時 -->
+                    <div class="mb-0.5">
+                        <span class="bg-[var(--color-primary)]/90 text-white text-[10px] font-bold px-2.5 py-1.5 rounded-lg shadow-lg backdrop-blur-sm flex items-center border border-white/20">
                             <i class="fas fa-hourglass-half mr-1.5 text-yellow-300"></i> 
-                            <span class="mr-1">還有</span>
-                            <span class="text-lg font-black mx-0.5">{{ countdown }}</span>
+                            <span class="mr-0.5">還剩</span>
+                            <span class="text-sm font-black mx-0.5">{{ countdown }}</span>
                             <span>天</span>
                         </span>
                     </div>
+
                 </div>
             </div>
+
         </header>
 
         <!-- Main Content -->
@@ -257,14 +260,36 @@
                     <div class="bg-red-50 card-rounded shadow-sm mb-6 border border-red-100 mx-1 p-5 relative overflow-hidden">
                         <div class="absolute -right-4 -top-4 text-red-100 text-8xl opacity-50 rotate-12"><i class="fas fa-ambulance"></i></div>
                         <h3 class="font-bold text-red-700 mb-4 flex items-center relative z-10"><i class="fas fa-exclamation-circle mr-2 animate-pulse"></i> 緊急救援 / 道路情報</h3>
+                        
                         <div class="grid grid-cols-3 gap-2 mb-4 relative z-10">
-                            <a href="tel:110" class="bg-white border border-red-200 p-3 rounded-xl flex flex-col items-center justify-center hover:bg-red-100 transition text-center"><i class="fas fa-user-shield text-xl text-red-500 mb-1"></i><span class="text-xs font-black text-red-700">警察 110</span></a>
-                            <a href="tel:119" class="bg-white border border-red-200 p-3 rounded-xl flex flex-col items-center justify-center hover:bg-red-100 transition text-center"><i class="fas fa-ambulance text-xl text-red-500 mb-1"></i><span class="text-xs font-black text-red-700">救護 119</span></a>
-                            <a href="tel:#8139" class="bg-white border border-red-200 p-3 rounded-xl flex flex-col items-center justify-center hover:bg-red-100 transition text-center"><i class="fas fa-tools text-xl text-red-500 mb-1"></i><span class="text-xs font-black text-red-700">JAF #8139</span></a>
+                            <a href="tel:110" class="bg-white border border-red-200 p-3 rounded-xl flex flex-col items-center justify-center hover:bg-red-100 transition text-center">
+                                <i class="fas fa-user-shield text-xl text-red-500 mb-1"></i>
+                                <span class="text-xs font-black text-red-700">警察 110</span>
+                            </a>
+                            <a href="tel:119" class="bg-white border border-red-200 p-3 rounded-xl flex flex-col items-center justify-center hover:bg-red-100 transition text-center">
+                                <i class="fas fa-ambulance text-xl text-red-500 mb-1"></i>
+                                <span class="text-xs font-black text-red-700">救護 119</span>
+                            </a>
+                            <!-- 新增 JAF -->
+                            <a href="tel:#8139" class="bg-white border border-red-200 p-3 rounded-xl flex flex-col items-center justify-center hover:bg-red-100 transition text-center">
+                                <i class="fas fa-tools text-xl text-red-500 mb-1"></i>
+                                <span class="text-xs font-black text-red-700">JAF #8139</span>
+                            </a>
                         </div>
+
                         <div class="space-y-2 relative z-10">
-                             <a href="https://info-road.hdb.hkd.mlit.go.jp/en/" target="_blank" class="block bg-white hover:bg-red-50 p-3 rounded-xl transition border border-red-100"><div class="flex justify-between items-center"><span class="text-sm font-bold text-slate-700"><i class="fas fa-video text-slate-400 mr-2"></i> 路況攝影機 (Live)</span><i class="fas fa-external-link-alt text-xs text-slate-400"></i></div></a>
-                            <a href="http://northern-road.jp/navi/eng/" target="_blank" class="block bg-white hover:bg-red-50 p-3 rounded-xl transition border border-red-100"><div class="flex justify-between items-center"><span class="text-sm font-bold text-slate-700"><i class="fas fa-route text-slate-400 mr-2"></i> 北之道導航 (冬季時間)</span><i class="fas fa-external-link-alt text-xs text-slate-400"></i></div></a>
+                             <a href="https://info-road.hdb.hkd.mlit.go.jp/en/" target="_blank" class="block bg-white hover:bg-red-50 p-3 rounded-xl transition border border-red-100">
+                                <div class="flex justify-between items-center">
+                                    <span class="text-sm font-bold text-slate-700"><i class="fas fa-video text-slate-400 mr-2"></i> 路況攝影機 (Live)</span>
+                                    <i class="fas fa-external-link-alt text-xs text-slate-400"></i>
+                                </div>
+                            </a>
+                            <a href="http://northern-road.jp/navi/eng/" target="_blank" class="block bg-white hover:bg-red-50 p-3 rounded-xl transition border border-red-100">
+                                <div class="flex justify-between items-center">
+                                    <span class="text-sm font-bold text-slate-700"><i class="fas fa-route text-slate-400 mr-2"></i> 北之道導航 (冬季時間)</span>
+                                    <i class="fas fa-external-link-alt text-xs text-slate-400"></i>
+                                </div>
+                            </a>
                         </div>
                     </div>
 
