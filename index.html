@@ -65,8 +65,17 @@
         
         <!-- Header: 改為 Banner 樣式，高度 250px -->
         <header class="relative w-full h-[250px] shadow-md z-20 flex-shrink-0">
-            <!-- 背景圖片：使用 Google Drive 直連連結 -->
-            <img src="https://drive.google.com/uc?export=view&id=1mYxmrNBZTwFZeGG1I_c4vKBgVEUNhzKD" alt="Header Banner" class="absolute inset-0 w-full h-full object-cover object-center z-0">
+            <!-- 
+                方法一：使用 GitHub 同目錄下的圖片
+                請確保您已將圖片命名為 "1.png" 並上傳到 GitHub (與 index.html 同一層資料夾)
+                (onerror 是預覽用的備援，如果找不到 1.png 會顯示雪景圖)
+            -->
+            <img 
+                src="1.png" 
+                onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1548263594-a71ea65a8598?auto=format&fit=crop&q=80&w=1920';"
+                alt="Header Banner" 
+                class="absolute inset-0 w-full h-full object-cover object-center z-0"
+            >
             
             <!-- 白色遮罩：45% 透明度 -->
             <div class="absolute inset-0 bg-white/45 backdrop-blur-[2px] z-10"></div>
