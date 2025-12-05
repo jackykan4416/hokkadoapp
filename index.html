@@ -79,39 +79,40 @@
                 >
             </transition>
             
-            <!-- 白色遮罩：15% 透明度 -->
-            <div class="absolute inset-0 bg-white/15 backdrop-blur-[2px] z-10"></div>
+            <!-- 白色遮罩：10% 透明度 -->
+            <div class="absolute inset-0 bg-white/10 z-10"></div>
 
             <!-- 內容容器 -->
             <div class="relative z-20 px-6 py-6 flex justify-between items-start h-full">
                 <div>
-                    <h1 class="text-3xl font-black tracking-wider flex items-center mb-2 text-[var(--color-primary)] drop-shadow-sm">
+                    <!-- 標題增加文字陰影，確保在圖片上清晰可見 -->
+                    <h1 class="text-3xl font-black tracking-wider flex items-center mb-2 text-[var(--color-primary)] drop-shadow-md bg-white/30 px-3 py-1 rounded-xl backdrop-blur-[1px] inline-flex">
                         <i class="fas fa-snowflake text-sky-500 mr-3 animate-pulse"></i>
                         Hokkaido
                     </h1>
                     
                     <div class="flex flex-col space-y-1">
                         <div class="flex items-center space-x-3 text-sm text-slate-800 font-bold" v-if="weather">
-                            <span class="flex items-center bg-white/60 px-2 py-1 rounded-lg">
+                            <span class="flex items-center bg-white/80 px-2 py-1 rounded-lg shadow-sm">
                                 <i class="fas fa-temperature-low mr-1.5 text-[var(--color-primary)]"></i>{{ weather.current_weather.temperature }}°C
                             </span>
-                            <span class="flex items-center text-orange-600 bg-white/60 px-2 py-1 rounded-lg">
+                            <span class="flex items-center text-orange-600 bg-white/80 px-2 py-1 rounded-lg shadow-sm">
                                 <i class="fas fa-cloud-sun mr-1.5"></i>日落 {{ sunsetTime }}
                             </span>
                         </div>
-                        <p class="text-xs text-slate-600 font-bold mt-1" v-else>
+                        <p class="text-xs text-slate-600 font-bold mt-1 bg-white/60 px-2 py-1 rounded-lg w-max" v-else>
                             <i class="fas fa-circle-notch fa-spin mr-1"></i>讀取天氣中...
                         </p>
                         
                         <div v-if="weather" class="mt-2">
-                            <a href="https://weathernews.jp/onebox/43.06417/141.34694/temp=c" target="_blank" class="text-[10px] text-slate-600 hover:text-[var(--color-primary)] transition flex items-center bg-white/50 px-2 py-1 rounded-full w-max border border-white/50 font-bold">
+                            <a href="https://weathernews.jp/onebox/43.06417/141.34694/temp=c" target="_blank" class="text-[10px] text-slate-600 hover:text-[var(--color-primary)] transition flex items-center bg-white/80 px-2 py-1 rounded-full w-max border border-white/50 font-bold shadow-sm">
                                 Weathernews <i class="fas fa-external-link-alt ml-1.5"></i>
                             </a>
                         </div>
                     </div>
                 </div>
                 
-                <button @click="refreshAll" class="w-10 h-10 flex items-center justify-center rounded-full bg-white/60 text-slate-600 hover:bg-white transition active:scale-90 shadow-sm backdrop-blur-sm">
+                <button @click="refreshAll" class="w-10 h-10 flex items-center justify-center rounded-full bg-white/80 text-slate-600 hover:bg-white transition active:scale-90 shadow-md backdrop-blur-sm">
                     <i class="fas fa-sync-alt" :class="{'animate-spin': loading}"></i>
                 </button>
             </div>
