@@ -63,32 +63,47 @@
 
     <div id="app" class="h-full flex flex-col relative" v-cloak>
         
-        <!-- Header -->
-        <header class="bg-white/80 backdrop-blur-md z-20 px-6 py-4 flex justify-between items-start sticky top-0 border-b border-slate-100">
-            <div>
-                <h1 class="text-2xl font-black tracking-wider flex items-center mb-1 text-[var(--color-primary)]">
-                    <i class="fas fa-snowflake text-sky-300 mr-2"></i>
-                    Hokkaido
-                </h1>
-                
-                <div class="flex items-center space-x-3 text-sm text-slate-500 mt-1" v-if="weather">
-                    <span class="flex items-center font-bold">
-                        <i class="fas fa-temperature-low mr-1.5 text-[var(--color-primary)]"></i>{{ weather.current_weather.temperature }}°C
-                    </span>
-                    <span class="opacity-30">|</span>
-                    <span class="flex items-center text-orange-400 font-bold">
-                        <i class="fas fa-cloud-sun mr-1.5"></i>日落 {{ sunsetTime }}
-                    </span>
+        <!-- Header: 改為 Banner 樣式，高度 250px -->
+        <header class="relative w-full h-[250px] shadow-md z-20 flex-shrink-0">
+            <!-- 背景圖片：使用 Google Drive 直連連結 -->
+            <img src="https://drive.google.com/uc?export=view&id=1mYxmrNBZTwFZeGG1I_c4vKBgVEUNhzKD" alt="Header Banner" class="absolute inset-0 w-full h-full object-cover object-center z-0">
+            
+            <!-- 白色遮罩：45% 透明度 -->
+            <div class="absolute inset-0 bg-white/45 backdrop-blur-[2px] z-10"></div>
+
+            <!-- 內容容器：浮在遮罩之上 -->
+            <div class="relative z-20 px-6 py-6 flex justify-between items-start h-full">
+                <div>
+                    <h1 class="text-3xl font-black tracking-wider flex items-center mb-2 text-[var(--color-primary)] drop-shadow-sm">
+                        <i class="fas fa-snowflake text-sky-500 mr-3 animate-pulse"></i>
+                        Hokkaido
+                    </h1>
+                    
+                    <div class="flex flex-col space-y-1">
+                        <div class="flex items-center space-x-3 text-sm text-slate-800 font-bold" v-if="weather">
+                            <span class="flex items-center bg-white/60 px-2 py-1 rounded-lg">
+                                <i class="fas fa-temperature-low mr-1.5 text-[var(--color-primary)]"></i>{{ weather.current_weather.temperature }}°C
+                            </span>
+                            <span class="flex items-center text-orange-600 bg-white/60 px-2 py-1 rounded-lg">
+                                <i class="fas fa-cloud-sun mr-1.5"></i>日落 {{ sunsetTime }}
+                            </span>
+                        </div>
+                        <p class="text-xs text-slate-600 font-bold mt-1" v-else>
+                            <i class="fas fa-circle-notch fa-spin mr-1"></i>讀取天氣中...
+                        </p>
+                        
+                        <div v-if="weather" class="mt-2">
+                            <a href="https://weathernews.jp/onebox/43.06417/141.34694/temp=c" target="_blank" class="text-[10px] text-slate-600 hover:text-[var(--color-primary)] transition flex items-center bg-white/50 px-2 py-1 rounded-full w-max border border-white/50 font-bold">
+                                Weathernews <i class="fas fa-external-link-alt ml-1.5"></i>
+                            </a>
+                        </div>
+                    </div>
                 </div>
-                <p class="text-xs text-slate-400 mt-1" v-else><i class="fas fa-circle-notch fa-spin mr-1"></i>讀取天氣中...</p>
                 
-                <div v-if="weather" class="mt-2">
-                    <a href="https://weathernews.jp/onebox/43.06417/141.34694/temp=c" target="_blank" class="text-[10px] text-slate-400 hover:text-[var(--color-primary)] transition flex items-center w-max">
-                        Weathernews <i class="fas fa-external-link-alt ml-1.5"></i>
-                    </a>
-                </div>
+                <button @click="refreshAll" class="w-10 h-10 flex items-center justify-center rounded-full bg-white/60 text-slate-600 hover:bg-white transition active:scale-90 shadow-sm backdrop-blur-sm">
+                    <i class="fas fa-sync-alt" :class="{'animate-spin': loading}"></i>
+                </button>
             </div>
-            <button @click="refreshAll" class="w-10 h-10 flex items-center justify-center rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 transition active:scale-90"><i class="fas fa-sync-alt" :class="{'animate-spin': loading}"></i></button>
         </header>
 
         <!-- Main Content -->
@@ -115,6 +130,7 @@
                     <div class="flex-1 overflow-y-auto no-scrollbar pb-24">
                         <div v-if="selectedDay && groupedItinerary[selectedDay]" class="space-y-0">
                             
+                            <!-- 日期大標題 -->
                             <div class="flex items-center mb-6 mt-2 ml-2">
                                 <div class="bg-[var(--color-primary)] text-white w-12 h-12 flex items-center justify-center rounded-xl font-black text-xl shadow-lg shadow-blue-900/10 mr-4">
                                     {{ new Date(selectedDay).getDate() }}
@@ -127,7 +143,7 @@
 
                             <div v-for="(item, index) in groupedItinerary[selectedDay]" :key="index" class="relative pl-2 pb-2">
                                 
-                                <!-- 移動方式 (加大版) -->
+                                <!-- 移動方式 -->
                                 <div v-if="index > 0 && (item.Transport || item.Duration)" class="flex items-center justify-center mb-8 ml-8 relative z-0">
                                     <div class="bg-slate-100 text-slate-600 px-6 py-3 rounded-full text-base font-bold flex items-center border-2 border-slate-200 z-10 shadow-sm">
                                         <span class="mr-3 text-2xl" v-if="item.Transport && item.Transport.includes('車')">🚗</span>
@@ -139,7 +155,7 @@
                                     <div class="absolute top-[-30px] bottom-[-30px] left-1/2 w-1 bg-slate-200 -z-10 h-[calc(100%+60px)]"></div>
                                 </div>
 
-                                <!-- ★★★ 卡片樣式更新：根據 Category 變更邊框顏色 ★★★ -->
+                                <!-- 卡片本體 -->
                                 <div 
                                     class="bg-white card-rounded shadow-sm p-5 relative overflow-hidden transition-all mb-6 border-l-[6px]"
                                     :class="getCategoryBorderClass(item.Category)"
@@ -147,7 +163,6 @@
                                     <div class="flex items-start pl-1">
                                         <div class="flex flex-col items-center mr-5 pt-1 min-w-[45px]">
                                             <span class="text-base font-black text-slate-700 font-mono tracking-tight">{{ item.Time || '--:--' }}</span>
-                                            <!-- 分類圖示 -->
                                             <div 
                                                 class="mt-3 w-8 h-8 rounded-full flex items-center justify-center border"
                                                 :class="getCategoryIconClass(item.Category)"
@@ -174,8 +189,18 @@
                                                 </div>
                                             </div>
 
-                                            <div v-if="item.Note" class="bg-yellow-50/50 rounded-xl p-3 mb-3 text-sm text-slate-600 flex items-start">
-                                                <span class="text-yellow-400 mr-2 mt-0.5">●</span>
+                                            <div v-if="getFoodRecommendation(item)" class="bg-yellow-50 rounded-xl p-3 mb-3 border border-yellow-100">
+                                                <div class="flex items-start">
+                                                    <span class="text-xl mr-2">💡</span>
+                                                    <div>
+                                                        <span class="text-[10px] text-yellow-600 font-black uppercase tracking-wider block mb-0.5">饕客推薦</span>
+                                                        <span class="text-sm text-slate-700 font-bold leading-relaxed">{{ getFoodRecommendation(item) }}</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div v-if="item.Note" class="bg-slate-50 rounded-xl p-3 mb-3 text-sm text-slate-600 flex items-start border border-slate-100">
+                                                <span class="text-slate-400 mr-2 mt-0.5">●</span>
                                                 <span class="leading-relaxed text-xs">{{ item.Note }}</span>
                                             </div>
 
@@ -327,6 +352,23 @@
                     { name: '札幌 Forza (Hotel Forza)', nights: '第 8 晚', phone: '+81-11-222-3555' },
                 ];
 
+                const foodRecommendations = {
+                    '根室花丸': '必點：二層帆立貝、花咲蟹鐵波汁、炙燒鮭魚',
+                    '達摩': '必點：成吉思汗烤肉、上肉 (數量限定)、茶泡飯',
+                    '成吉思汗': '必點：成吉思汗烤肉、小羊肉',
+                    '三角市場': '必點：帝王蟹、海膽丼、滝波食堂/武田鮮魚店',
+                    'Suage': '必點：知床雞野菜湯咖哩、柚子胡椒風味',
+                    '湯咖哩': '必點：雞腿湯咖哩、加起司飯',
+                    '一幻': '必點：鮮蝦味噌拉麵 (適量豚骨/粗麵)、蝦仁飯糰',
+                    '拉麵': '必點：味噌拉麵、奶油玉米拉麵',
+                    'LeTAO': '必點：雙層芝士蛋糕 (Double Fromage)、紅茶巧克力',
+                    '北菓樓': '必點：夢不思議泡芙、妖精之森年輪蛋糕',
+                    '六花亭': '必點：萊姆葡萄奶油夾心餅、草莓巧克力',
+                    '彩未': '必點：味噌拉麵 (生薑風味)',
+                    '蟹本家': '必點：螃蟹會席料理、炸蟹殼',
+                    '冰雪之門': '必點：帝王蟹全餐'
+                };
+
                 const activeTab = ref('itinerary');
                 const loading = ref(false);
                 const syncingExpenses = ref(false);
@@ -450,7 +492,6 @@
                 const totalExpense = computed(() => expenses.value.reduce((sum, item) => sum + (parseInt(item.amount)||0), 0));
                 const getPersonTotal = (name) => { return expenses.value.filter(e => e.payer === name).reduce((sum, e) => sum + (parseInt(e.amount)||0), 0); };
 
-                // ★★★ 卡片邊框顏色 logic ★★★
                 const getCategoryBorderClass = (cat) => {
                     if (!cat) return 'border-l-slate-300';
                     const c = cat.toLowerCase();
@@ -461,7 +502,6 @@
                     return 'border-l-[var(--color-primary)]';
                 };
 
-                // ★★★ 圓圈圖示邊框與顏色 logic ★★★
                 const getCategoryIconClass = (cat) => {
                     if (!cat) return 'border-slate-200 text-slate-300 bg-slate-50';
                     const c = cat.toLowerCase();
@@ -482,6 +522,23 @@
                     return 'fas fa-map-pin';
                 };
 
+                const getFoodRecommendation = (item) => {
+                    const cat = (item.Category || '').toLowerCase();
+                    if (!cat.includes('food') && !cat.includes('食')) return null;
+                    const activity = (item.Activity || '').toLowerCase();
+                    const location = (item.Location || '').toLowerCase();
+                    const combinedText = activity + location;
+                    if (combinedText.includes('早餐') || combinedText.includes('breakfast')) {
+                        if (!combinedText.includes('二條') && !combinedText.includes('三角')) return null;
+                    }
+                    for (const [key, recommend] of Object.entries(foodRecommendations)) {
+                        if (combinedText.includes(key.toLowerCase())) {
+                            return recommend;
+                        }
+                    }
+                    return null;
+                };
+
                 const formatDate = (dateStr) => { try { const d = new Date(dateStr); return `${d.getMonth() + 1}月${d.getDate()}日`; } catch (e) { return dateStr; } };
                 const formatShortDate = (dateStr) => { if(!dateStr) return ''; try { const d = new Date(dateStr); return `${d.getMonth() + 1}/${d.getDate()}`; } catch (e) { return ''; } }
                 const getDayOfWeek = (dateStr) => { try { return ['週日', '週一', '週二', '週三', '週四', '週五', '週六'][new Date(dateStr).getDay()]; } catch (e) { return ''; } };
@@ -491,7 +548,7 @@
                 return {
                     people, activeTab, loading, weather, sunsetTime, groupedItinerary, dateKeys, selectedDay, expenses,
                     totalExpense, showExpenseModal, newExpense, addExpense, deleteExpense, refreshAll, syncingExpenses, isSaving, isDeleting,
-                    formatDate, formatShortDate, getDayOfWeek, getCategoryBorderClass, getCategoryIconClass, getCategoryIcon, 
+                    formatDate, formatShortDate, getDayOfWeek, getCategoryBorderClass, getCategoryIconClass, getCategoryIcon, getFoodRecommendation,
                     SHEET_CSV_URL, APPS_SCRIPT_URL, getPersonTotal, usingMockData,
                     exchangeRate, calcHkd, calcJpy, updateFromHkd, updateFromJpy, hotelList
                 };
