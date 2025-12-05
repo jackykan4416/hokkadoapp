@@ -137,7 +137,7 @@
                         </button>
                     </div>
 
-                    <!-- 行程列表 (加入 ref 以便控制捲動) -->
+                    <!-- 行程列表 -->
                     <div class="flex-1 overflow-y-auto no-scrollbar pb-24" ref="itineraryContainer">
                         <div v-if="selectedDay && groupedItinerary[selectedDay]" class="space-y-0">
                             
@@ -210,7 +210,6 @@
                                                 </div>
                                             </div>
 
-                                            <!-- 備註：加入 break-all 防止長網址破版 -->
                                             <div v-if="item.Note" class="bg-slate-50 rounded-xl p-3 mb-3 text-sm text-slate-600 flex items-start border border-slate-100">
                                                 <span class="text-slate-400 mr-2 mt-0.5">●</span>
                                                 <span class="leading-relaxed text-xs break-all">{{ item.Note }}</span>
@@ -488,10 +487,10 @@
 
                 // 動態 Banner 邏輯
                 const bannerImage = computed(() => {
-                    if (dateKeys.value.length === 0 || !selectedDay.value) return '1.png';
+                    if (dateKeys.value.length === 0 || !selectedDay.value) return '1.jpg';
                     const index = dateKeys.value.indexOf(selectedDay.value);
-                    if (index === 1) return '2.jpg';
-                    return '1.png';
+                    // Index 0 (Day 1) -> 1.jpg, Index 1 (Day 2) -> 2.jpg, etc.
+                    return `${index + 1}.jpg`;
                 });
 
                 const sunsetTime = computed(() => {
