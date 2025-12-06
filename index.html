@@ -27,7 +27,6 @@
             --color-text: #2C3E50;
         }
 
-        /* ★★★ 修正 1: 移除 h-screen 與 overflow-hidden，改用 min-h-screen 讓 body 自然長高 ★★★ */
         body { 
             font-family: 'Zen Maru Gothic', sans-serif; 
             background-color: var(--color-bg);
@@ -35,13 +34,14 @@
             background-size: 30px 30px;
             color: var(--color-text);
             -webkit-tap-highlight-color: transparent; 
-            min-height: 100vh;
-            overflow-y: auto; /* 恢復視窗捲動 */
         }
 
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         .safe-bottom { padding-bottom: env(safe-area-inset-bottom); }
         [v-cloak] { display: none !important; }
         
+        /* 浮動導航條 (無色玻璃 + 縮小版) */
         .floating-nav {
             position: fixed;
             bottom: 24px;
@@ -54,7 +54,7 @@
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-            z-index: 50; /* 提高層級，確保浮在最上面 */
+            z-index: 40;
             border: 1px solid rgba(255,255,255,0.3);
             padding: 2px 0;
         }
@@ -63,6 +63,7 @@
         .banner-enter-active, .banner-leave-active { transition: opacity 0.5s ease; }
         .banner-enter-from, .banner-leave-to { opacity: 0; }
 
+        /* Header 資訊框樣式 */
         .info-pill {
             background-color: rgba(255, 255, 255, 0.2);
             backdrop-filter: blur(10px);
@@ -83,10 +84,9 @@
         }
     </style>
 </head>
-<body class="flex flex-col"> <!-- 移除 h-screen, overflow-hidden -->
+<body class="h-screen overflow-hidden flex flex-col">
 
-    <!-- ★★★ 修正 2: 移除 h-full, overflow-hidden ★★★ -->
-    <div id="app" class="flex flex-col relative min-h-screen" v-cloak>
+    <div id="app" class="h-full flex flex-col relative" v-cloak>
         
         <!-- Header -->
         <header class="relative w-full h-[250px] shadow-md z-20 flex-shrink-0 bg-slate-200">
@@ -146,19 +146,16 @@
         </header>
 
         <!-- Main Content -->
-        <!-- ★★★ 修正 3: 移除 overflow-y-auto, no-scrollbar，讓 body 捲動 ★★★ -->
-        <!-- 增加 pb-32 確保底部內容不被浮動導航擋住 -->
-        <main class="flex-1 pb-32 px-4 pt-6" ref="mainContainer">
+        <main class="flex-1 overflow-y-auto no-scrollbar pb-32 px-4 pt-6" ref="mainContainer">
             
             <transition name="slide-up" mode="out-in">
                 
                 <!-- Tab 1: 行程 -->
                 <div v-if="activeTab === 'itinerary'" key="itinerary" class="flex flex-col h-full">
                     
-                    <!-- ★★★ Sticky 日期選擇器 ★★★ -->
-                    <!-- top-0 會讓它黏在瀏覽器視窗頂部 -->
-                    <div v-if="dateKeys.length > 0" class="sticky top-0 z-30 bg-[var(--color-bg)]/95 backdrop-blur-md py-3 -mx-4 px-4 mb-4 border-b border-white/50 transition-all duration-300 shadow-sm">
-                        <div class="flex space-x-2 overflow-x-auto no-scrollbar">
+                    <!-- 日期選擇器 -->
+                    <div v-if="dateKeys.length > 0" class="sticky top-0 z-30 bg-[var(--color-bg)]/95 backdrop-blur-sm py-2 -mx-4 px-4 mb-4 border-b border-white/50 transition-all duration-300 shadow-sm">
+                        <div class="flex space-x-2 overflow-x-auto no-scrollbar py-2">
                             <button 
                                 v-for="date in dateKeys" 
                                 :key="date" 
@@ -171,8 +168,7 @@
                         </div>
                     </div>
 
-                    <!-- 行程列表 -->
-                    <div ref="itineraryContainer">
+                    <div class="pb-24" ref="itineraryContainer">
                         <div v-if="selectedDay && groupedItinerary[selectedDay]" class="space-y-0">
                             <div class="flex items-center mb-6 mt-2 ml-2">
                                 <div>
@@ -186,6 +182,7 @@
                             </div>
 
                             <div v-for="(item, index) in groupedItinerary[selectedDay]" :key="index" class="relative pl-2 pb-2">
+                                <!-- 移動方式 -->
                                 <div v-if="index > 0 && (item.Transport || item.Duration)" class="flex items-center justify-center mb-8 ml-8 relative z-0">
                                     <div class="bg-slate-100 text-slate-600 px-6 py-3 rounded-full text-base font-bold flex items-center border-2 border-slate-200 z-10 shadow-sm">
                                         <span class="mr-3 text-2xl" v-if="item.Transport && item.Transport.includes('車')">🚗</span>
@@ -197,6 +194,7 @@
                                     <div class="absolute top-[-30px] bottom-[-30px] left-1/2 w-1 bg-slate-200 -z-10 h-[calc(100%+60px)]"></div>
                                 </div>
 
+                                <!-- 卡片本體 -->
                                 <div class="bg-white card-rounded shadow-sm p-5 relative overflow-hidden transition-all mb-6 border-l-[6px]" :class="getCategoryBorderClass(item.Category)">
                                     <div class="flex items-start pl-1">
                                         <div class="flex flex-col items-center mr-5 pt-1 min-w-[45px]">
@@ -233,7 +231,7 @@
                 </div>
 
                 <!-- Tab 2: 分帳 -->
-                <div v-else-if="activeTab === 'expenses'" key="expenses">
+                <div v-else-if="activeTab === 'expenses'" key="expenses" class="pt-6">
                     <div class="bg-white p-5 rounded-2xl shadow-sm mb-4 border border-slate-100 mx-1 relative overflow-hidden">
                         <div class="flex justify-between items-start z-10 relative">
                             <div><p class="text-xs text-slate-400 font-bold tracking-widest mb-1">PUBLIC FUND</p><h3 class="text-lg font-black text-slate-700">公數餘額</h3></div>
@@ -275,20 +273,19 @@
                 </div>
 
                 <!-- Tab 3: 工具 -->
-                <div v-else-if="activeTab === 'tools'" key="tools">
+                <div v-else-if="activeTab === 'tools'" key="tools" class="pt-6">
                     <div class="flex p-1 bg-white rounded-xl mb-4 mx-1 border border-slate-200"><button v-for="tab in ['packing', 'shopping', 'phrase', 'car']" :key="tab" @click="toolSubTab = tab" class="flex-1 py-2 text-xs font-bold rounded-lg transition-all" :class="toolSubTab === tab ? 'bg-[var(--color-primary)] text-white shadow-sm' : 'text-slate-400'"><span v-if="tab==='packing'">🎒 行李</span><span v-else-if="tab==='shopping'">🎁 代購</span><span v-else-if="tab==='phrase'">🗣️ 日語</span><span v-else>🅿️ 停車</span></button></div>
                     <div v-if="toolSubTab === 'packing'" class="pb-24"><div class="bg-white card-rounded p-5 border border-slate-50 mx-1"><h3 class="font-bold text-slate-700 mb-4 flex items-center"><i class="fas fa-suitcase-rolling mr-2 text-[var(--color-primary)]"></i> 雪國自駕必備</h3><div class="space-y-3"><div v-for="(item, idx) in packingList" :key="idx" class="flex items-center p-3 rounded-xl border transition-all" :class="item.checked ? 'bg-slate-50 border-slate-100 opacity-60' : 'bg-white border-slate-200'" @click="togglePacking(idx)"><div class="w-6 h-6 rounded-full border-2 flex items-center justify-center mr-3 transition-colors" :class="item.checked ? 'bg-emerald-400 border-emerald-400 text-white' : 'border-slate-300'"><i class="fas fa-check text-xs" v-if="item.checked"></i></div><span class="text-sm font-bold" :class="item.checked ? 'text-slate-400 line-through' : 'text-slate-700'">{{ item.text }}</span></div></div></div></div>
                     
+                    <!-- 代購清單 -->
                     <div v-else-if="toolSubTab === 'shopping'" class="pb-24">
                         <div class="bg-white p-5 rounded-2xl mb-4 border border-slate-100 shadow-sm mx-1">
-                            <div class="flex flex-col gap-3">
-                                <input v-model="newShopItem.text" type="text" placeholder="輸入商品名稱..." class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-4 text-base font-bold focus:ring-2 focus:ring-[var(--color-primary)] focus:outline-none transition-shadow">
-                                <div class="flex gap-3">
-                                    <input v-model="newShopItem.who" type="text" placeholder="買給誰?" class="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-4 py-4 text-base font-bold text-center focus:ring-2 focus:ring-[var(--color-primary)] focus:outline-none transition-shadow">
-                                    <button @click="addShopItem" class="bg-[var(--color-primary)] hover:bg-[var(--color-primary-dark)] text-white w-24 rounded-xl shadow-lg active:scale-95 transition flex items-center justify-center">
-                                        <i class="fas fa-plus text-xl"></i>
-                                    </button>
-                                </div>
+                            <input v-model="newShopItem.text" type="text" placeholder="輸入商品名稱..." class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-4 text-base font-bold focus:ring-2 focus:ring-[var(--color-primary)] focus:outline-none mb-4 transition-shadow">
+                            <div class="flex gap-3">
+                                <input v-model="newShopItem.who" type="text" placeholder="買給誰?" class="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-4 py-4 text-base font-bold text-center focus:ring-2 focus:ring-[var(--color-primary)] focus:outline-none transition-shadow">
+                                <button @click="addShopItem" class="bg-[var(--color-primary)] hover:bg-[var(--color-primary-dark)] text-white w-24 rounded-xl shadow-lg active:scale-95 transition flex items-center justify-center">
+                                    <i class="fas fa-plus text-xl"></i>
+                                </button>
                             </div>
                         </div>
                         <div class="space-y-3 mx-1">
@@ -304,7 +301,6 @@
                                 <h3 class="font-bold text-slate-800 flex items-center"><i class="fas fa-car mr-2 text-[var(--color-primary)]"></i> 停車/租車</h3>
                                 <button @click="syncParking" class="text-xs bg-[var(--color-primary)] text-white px-3 py-1.5 rounded-full font-bold active:scale-95 transition" :disabled="isSaving"><i class="fas fa-cloud-upload-alt mr-1"></i>{{ isSaving ? '更新中' : '同步' }}</button>
                             </div>
-                            
                             <div class="mb-4"><label class="block text-xs font-bold text-slate-400 mb-1">車牌號碼</label><input v-model="carInfo.plate" class="w-full bg-slate-50 border-2 border-slate-200 rounded-xl p-4 text-center text-3xl font-black text-slate-700 tracking-widest uppercase focus:border-[var(--color-primary)] focus:outline-none" placeholder="12-34"></div>
                             <div class="flex gap-3 mb-4"><div class="flex-1"><label class="block text-xs font-bold text-slate-400 mb-1">樓層 Floor</label><input v-model="carInfo.floor" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-center font-bold text-slate-700 focus:border-[var(--color-primary)] focus:outline-none" placeholder="B1"></div><div class="flex-1"><label class="block text-xs font-bold text-slate-400 mb-1">區域 Zone</label><input v-model="carInfo.zone" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-center font-bold text-slate-700 focus:border-[var(--color-primary)] focus:outline-none" placeholder="G區"></div></div>
                             
@@ -323,7 +319,7 @@
                 </div>
 
                 <!-- Tab 4: 資訊 -->
-                <div v-else-if="activeTab === 'info'" key="info">
+                <div v-else-if="activeTab === 'info'" key="info" class="pt-6">
                     <div class="bg-white card-rounded shadow-sm p-6 mb-6 border border-slate-50 mt-2 mx-1 relative overflow-hidden">
                         <h3 class="font-bold text-[var(--color-primary)] mb-4 flex items-center text-lg"><i class="fas fa-coins text-yellow-400 mr-3 text-xl"></i> 實時匯率</h3>
                         <div class="flex items-center space-x-3 mb-3 relative z-10">
@@ -473,6 +469,7 @@
                     { name: '札幌 Forza (Hotel Forza)', nights: '第 8 晚', phone: '+81-11-222-3555' },
                 ];
 
+                // Food Recommendations
                 const foodRecommendations = { '根室花丸': '必點：二層帆立貝、花咲蟹鐵波汁、炙燒鮭魚', '達摩': '必點：成吉思汗烤肉、上肉 (數量限定)、茶泡飯', '成吉思汗': '必點：成吉思汗烤肉、小羊肉', '三角市場': '必點：帝王蟹、海膽丼、滝波食堂/武田鮮魚店', 'Suage': '必點：知床雞野菜湯咖哩、柚子胡椒風味', '湯咖哩': '必點：雞腿湯咖哩、加起司飯', '一幻': '必點：鮮蝦味噌拉麵 (適量豚骨/粗麵)、蝦仁飯糰', '拉麵': '必點：味噌拉麵、奶油玉米拉麵', 'LeTAO': '必點：雙層芝士蛋糕 (Double Fromage)、紅茶巧克力', '北菓樓': '必點：夢不思議泡芙、妖精之森年輪蛋糕', '六花亭': '必點：萊姆葡萄奶油夾心餅、草莓巧克力', '彩未': '必點：味噌拉麵 (生薑風味)', '蟹本家': '必點：螃蟹會席料理、炸蟹殼', '冰雪之門': '必點：帝王蟹全餐' };
                 const packingItems = [ {text: '護照 + 影本', checked: false}, {text: '國際駕照 + 台灣駕照/日文譯本', checked: false}, {text: 'VJW 截圖 (入境/海關)', checked: false}, {text: '現金 (日幣) + 信用卡 (JCB佳)', checked: false}, {text: 'Sim卡 / 漫遊開通', checked: false}, {text: '行動電源 + 充電線', checked: false}, {text: '雪靴 (防滑防水)', checked: false}, {text: '發熱衣 / 發熱褲', checked: false}, {text: '手套 (防水) + 毛帽', checked: false}, {text: '墨鏡 (雪地反光強)', checked: false}, {text: '個人常備藥 / 暈車藥', checked: false}, {text: '保濕乳液 / 護唇膏', checked: false}, {text: '暖暖包 (貼式/手握)', checked: false}, {text: '牙刷牙膏 (部分飯店不主動提供)', checked: false} ];
                 const phrasebookData = [ {cat: '餐廳', jp: '英語のメニューはありますか', pron: 'Eigo no menyu wa arimasuka', cn: '有英文菜單嗎？'}, {cat: '餐廳', jp: '会計をお願いします', pron: 'Kaikei o onegaishimasu', cn: '我要結帳'}, {cat: '餐廳', jp: 'おすすめは何ですか', pron: 'Osusume wa nan desu ka', cn: '有什麼推薦的嗎？'}, {cat: '自駕', jp: '満タン、レギュラーで', pron: 'Mantan, Regyura de', cn: '加滿油 (Regular)'}, {cat: '自駕', jp: '駐車場はどこですか', pron: 'Chushajo wa doko desu ka', cn: '停車場在哪裡？'}, {cat: '求助', jp: 'トイレはどこですか', pron: 'Toire wa doko desu ka', cn: '廁所在哪裡？'}, {cat: '求助', jp: 'すみません', pron: 'Sumimasen', cn: '不好意思 / 請問'} ];
@@ -670,7 +667,11 @@
                 const showPhraseModal = (phrase) => { selectedPhrase.value = phrase; };
                 const getItemKey = (item) => `${item.Date}-${item.Time}-${item.Activity}`;
                 const saveMemos = () => localStorage.setItem('hokkaido_memos', JSON.stringify(memos.value));
-                const scrollToTop = (tab) => { activeTab.value = tab; if (mainContainer.value) mainContainer.value.scrollTop = 0; }
+                
+                const scrollToTop = (tab) => {
+                    activeTab.value = tab;
+                    if (mainContainer.value) mainContainer.value.scrollTop = 0;
+                }
                 const scrollToDay = (date) => { selectedDay.value = date; if (mainContainer.value) mainContainer.value.scrollTop = 0; };
                 const fetchRate = async () => { try { const res = await fetch('https://api.exchangerate-api.com/v4/latest/HKD'); const data = await res.json(); exchangeRate.value = data.rates.JPY; } catch (e) {} };
                 const updateFromHkd = () => { if(!exchangeRate.value) return; calcJpy.value = (parseFloat(calcHkd.value) * exchangeRate.value).toFixed(0); };
