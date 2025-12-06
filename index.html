@@ -69,17 +69,17 @@
             border: 1px solid rgba(255, 255, 255, 0.5);
             border-radius: 999px;
             padding: 0 12px;
-            height: 36px;
+            height: 34px; /* 稍微調高一點點 */
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 11px;
+            font-size: 12px; /* 字體稍微調大 */
             font-weight: 800;
             color: #475569;
             white-space: nowrap;
             box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-            flex: 1;
-            min-width: 0;
+            /* 移除 flex: 1，改用 auto width */
+            flex-shrink: 0; 
         }
     </style>
 </head>
@@ -113,31 +113,35 @@
                 </div>
             </div>
 
-            <div class="absolute bottom-4 left-0 w-full px-4 z-20">
-                <div class="flex justify-between items-center gap-2 w-full">
+            <!-- ★★★ 底部資訊列 (改為橫向捲動 Scrollable) ★★★ -->
+            <!-- overflow-x-auto 確保內容超出時可以滑動，no-scrollbar 隱藏捲軸條 -->
+            <div class="absolute bottom-4 left-0 w-full z-20 overflow-x-auto no-scrollbar px-4">
+                <div class="flex items-center gap-2 w-max pb-1"> <!-- w-max 讓內容撐開 -->
                     
+                    <!-- 1. 天氣 (膠囊) -->
                     <div class="info-pill" v-if="displayWeather">
-                        <div class="flex items-center truncate">
+                        <div class="flex items-center">
                             <i :class="displayWeather.icon" class="mr-1.5 text-base"></i>
                             <span class="mr-2">{{ displayWeather.temp }}°</span>
                             <span class="text-slate-300 mr-2">|</span>
-                            <i class="fas fa-cloud-sun text-orange-500 mr-1"></i>
+                            <i class="fas fa-cloud-sun text-orange-500 mr-1.5"></i>
                             <span>{{ displayWeather.sunset }}</span>
                         </div>
                     </div>
                     <div class="info-pill text-slate-400" v-else>
-                        <i class="fas fa-circle-notch fa-spin mr-1"></i>載入中
+                        <i class="fas fa-circle-notch fa-spin mr-1.5"></i>載入中
                     </div>
 
+                    <!-- 2. Weathernews (膠囊) -->
                     <a href="https://weathernews.jp/onebox/43.06417/141.34694/temp=c" target="_blank" class="info-pill text-sky-600 hover:text-sky-800 transition">
-                        WN 天氣 <i class="fas fa-external-link-alt ml-1 text-[9px]"></i>
+                        WN 天氣 <i class="fas fa-external-link-alt ml-1.5 text-[10px]"></i>
                     </a>
 
-                    <!-- ★★★ 倒數計時：文字顏色改為 text-orange-400 ★★★ -->
+                    <!-- 3. 倒數計時 (膠囊) -->
                     <div class="info-pill bg-[var(--color-primary)]/90 text-orange-400 border-transparent">
-                        <span class="text-[11px] opacity-90 mr-1 text-orange-400">剩</span>
+                        <span class="text-[12px] opacity-90 mr-1 text-orange-400">剩</span>
                         <span class="text-sm font-black">{{ countdown }}</span>
-                        <span class="text-[11px] opacity-90 ml-1 text-orange-400">天</span>
+                        <span class="text-[12px] opacity-90 ml-0.5 text-orange-400">天</span>
                     </div>
 
                 </div>
@@ -150,8 +154,6 @@
                 
                 <!-- Tab 1: 行程 -->
                 <div v-if="activeTab === 'itinerary'" key="itinerary" class="pt-6"> 
-                    
-                    <!-- 日期選擇器 -->
                     <div class="sticky top-0 z-30 bg-[var(--color-bg)]/95 backdrop-blur-sm py-2 -mx-4 px-4 mb-4 border-b border-white/50 transition-all duration-300">
                         <div v-if="dateKeys.length > 0" class="flex space-x-2 overflow-x-auto no-scrollbar py-2">
                             <button 
@@ -166,22 +168,13 @@
                         </div>
                     </div>
 
-                    <!-- 行程列表 -->
                     <div class="pb-24">
                         <div v-if="selectedDay && groupedItinerary[selectedDay]" class="space-y-0">
                             <div class="flex items-center mb-6 mt-2 ml-2">
-                                <div>
-                                    <h2 class="text-2xl font-bold text-slate-700 tracking-wide">{{ formatDate(selectedDay) }}</h2>
-                                    <div class="flex items-center mt-1">
-                                        <span class="text-slate-400 text-xs font-bold bg-slate-100 px-2 py-0.5 rounded mr-2">{{ getDayOfWeek(selectedDay) }}</span>
-                                        <span v-if="isFutureForecast" class="text-[10px] text-emerald-500 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-100"><i class="fas fa-clock mr-1"></i>預報</span>
-                                        <span v-else class="text-[10px] text-slate-400 bg-slate-50 px-2 py-0.5 rounded border border-slate-200">實時</span>
-                                    </div>
-                                </div>
+                                <div><h2 class="text-2xl font-bold text-slate-700 tracking-wide">{{ formatDate(selectedDay) }}</h2><div class="flex items-center mt-1"><span class="text-slate-400 text-xs font-bold bg-slate-100 px-2 py-0.5 rounded mr-2">{{ getDayOfWeek(selectedDay) }}</span><span v-if="isFutureForecast" class="text-[10px] text-emerald-500 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-100"><i class="fas fa-clock mr-1"></i>預報</span><span v-else class="text-[10px] text-slate-400 bg-slate-50 px-2 py-0.5 rounded border border-slate-200">實時</span></div></div>
                             </div>
 
                             <div v-for="(item, index) in groupedItinerary[selectedDay]" :key="index" class="relative pl-2 pb-2">
-                                <!-- 移動方式 -->
                                 <div v-if="index > 0 && (item.Transport || item.Duration)" class="flex items-center justify-center mb-8 ml-8 relative z-0">
                                     <div class="bg-slate-100 text-slate-600 px-6 py-3 rounded-full text-base font-bold flex items-center border-2 border-slate-200 z-10 shadow-sm">
                                         <span class="mr-3 text-2xl" v-if="item.Transport && item.Transport.includes('車')">🚗</span>
@@ -193,7 +186,6 @@
                                     <div class="absolute top-[-30px] bottom-[-30px] left-1/2 w-1 bg-slate-200 -z-10 h-[calc(100%+60px)]"></div>
                                 </div>
 
-                                <!-- 卡片本體 -->
                                 <div class="bg-white card-rounded shadow-sm p-5 relative overflow-hidden transition-all mb-6 border-l-[6px]" :class="getCategoryBorderClass(item.Category)">
                                     <div class="flex items-start pl-1">
                                         <div class="flex flex-col items-center mr-5 pt-1 min-w-[45px]">
@@ -205,23 +197,11 @@
                                                 <h3 class="font-bold text-slate-800 text-lg leading-snug mr-2">{{ item.Activity }}</h3>
                                                 <div class="bg-orange-100 text-orange-600 px-3 py-1 rounded-lg font-black text-sm shadow-sm whitespace-nowrap border border-orange-200">{{ item.Time || '--:--' }}</div>
                                             </div>
-                                            
-                                            <!-- 地點直接連結 -->
-                                            <a v-if="item.Link" :href="item.Link" target="_blank" class="inline-flex items-center text-xs text-white mb-3 font-bold bg-[var(--color-primary)] px-3 py-1.5 rounded-full shadow-sm active:scale-95 transition hover:bg-sky-600 cursor-pointer">
-                                                <i class="fas fa-map-marker-alt mr-1.5"></i>
-                                                <span>{{ item.Location || '地點導航' }}</span>
-                                                <i class="fas fa-chevron-right ml-1 opacity-50 text-[10px]"></i>
-                                            </a>
-                                            <div v-else class="flex items-center text-xs text-slate-500 mb-3 font-bold bg-slate-100 px-3 py-1.5 rounded-full w-max">
-                                                <i class="fas fa-map-marker-alt text-slate-400 mr-1.5"></i>
-                                                <span>{{ item.Location || '未指定地點' }}</span>
-                                            </div>
-
+                                            <a v-if="item.Link" :href="item.Link" target="_blank" class="inline-flex items-center text-xs text-white mb-3 font-bold bg-[var(--color-primary)] px-3 py-1.5 rounded-full shadow-sm active:scale-95 transition hover:bg-sky-600 cursor-pointer"><i class="fas fa-map-marker-alt mr-1.5"></i><span>{{ item.Location || '地點導航' }}</span><i class="fas fa-chevron-right ml-1 opacity-50 text-[10px]"></i></a>
+                                            <div v-else class="flex items-center text-xs text-slate-500 mb-3 font-bold bg-slate-100 px-3 py-1.5 rounded-full w-max"><i class="fas fa-map-marker-alt text-slate-400 mr-1.5"></i><span>{{ item.Location || '未指定地點' }}</span></div>
                                             <div v-if="item.MapCode" class="mb-3"><div class="bg-[var(--color-bg)] px-3 py-2 rounded-xl flex items-center border border-slate-100"><i class="fas fa-car-side text-[var(--color-primary)] mr-3 text-lg opacity-80"></i><div class="flex flex-col"><span class="text-[9px] text-slate-400 uppercase tracking-wider font-bold">NAVI / MAPCODE</span><span class="font-mono text-base font-bold text-slate-700 tracking-wide">{{ item.MapCode }}</span></div></div></div>
                                             <div v-if="getFoodRecommendation(item)" class="bg-yellow-50 rounded-xl p-3 mb-3 border border-yellow-100"><div class="flex items-start"><span class="text-xl mr-2">💡</span><div><span class="text-[10px] text-yellow-600 font-black uppercase tracking-wider block mb-0.5">饕客推薦</span><span class="text-sm text-slate-700 font-bold leading-relaxed">{{ getFoodRecommendation(item) }}</span></div></div></div>
                                             <div v-if="item.Note" class="bg-slate-50 rounded-xl p-3 mb-3 text-sm text-slate-600 flex items-start border border-slate-100"><span class="text-slate-400 mr-2 mt-0.5">●</span><span class="leading-relaxed text-xs break-all">{{ item.Note }}</span></div>
-                                            
-                                            <!-- Memo便條 -->
                                             <div class="mt-4 pt-3 border-t border-slate-100"><div class="relative"><i class="fas fa-pen absolute left-3 top-3 text-yellow-500/50 text-xs"></i><textarea v-model="memos[getItemKey(item)]" @input="saveMemos" class="w-full bg-yellow-50/50 border border-yellow-100 rounded-xl py-2 pl-8 pr-3 text-sm text-slate-600 focus:outline-none focus:ring-2 focus:ring-yellow-200 resize-none transition-shadow" rows="1" placeholder="隨手記 (Memo)..." @focus="$event.target.rows = 3" @blur="$event.target.value === '' ? $event.target.rows = 1 : $event.target.rows = 3"></textarea></div></div>
                                         </div>
                                     </div>
@@ -292,7 +272,39 @@
                     </div>
                     
                     <div v-else-if="toolSubTab === 'phrase'" class="pb-24"><div class="grid grid-cols-2 gap-3 mx-1"><div v-for="(phrase, idx) in phrasebook" :key="idx" class="bg-white card-rounded p-4 border border-slate-50 shadow-sm active:scale-95 transition cursor-pointer hover:border-[var(--color-primary)]" @click="showPhraseModal(phrase)"><div class="text-xs text-slate-400 mb-1">{{ phrase.cat }}</div><div class="font-black text-slate-700 text-lg mb-1">{{ phrase.cn }}</div><div class="text-[10px] text-[var(--color-primary)]">{{ phrase.pron }}</div></div></div></div>
-                    <div v-else-if="toolSubTab === 'car'" class="pb-24"><div class="bg-white card-rounded p-6 border border-slate-50 shadow-sm mx-1"><div class="flex justify-between items-center mb-4"><h3 class="font-bold text-slate-800 flex items-center"><i class="fas fa-car mr-2 text-[var(--color-primary)]"></i> 停車/租車</h3><button @click="syncParking" class="text-xs bg-[var(--color-primary)] text-white px-3 py-1.5 rounded-full font-bold active:scale-95 transition" :disabled="isSaving"><i class="fas fa-cloud-upload-alt mr-1"></i>{{ isSaving ? '更新中' : '同步' }}</button></div><div class="mb-4"><label class="block text-xs font-bold text-slate-400 mb-1">車牌號碼</label><input v-model="carInfo.plate" class="w-full bg-slate-50 border-2 border-slate-200 rounded-xl p-4 text-center text-3xl font-black text-slate-700 tracking-widest uppercase focus:border-[var(--color-primary)] focus:outline-none" placeholder="12-34"></div><div class="flex gap-3 mb-4"><div class="flex-1"><label class="block text-xs font-bold text-slate-400 mb-1">樓層 Floor</label><input v-model="carInfo.floor" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-center font-bold text-slate-700 focus:border-[var(--color-primary)] focus:outline-none" placeholder="B1"></div><div class="flex-1"><label class="block text-xs font-bold text-slate-400 mb-1">區域 Zone</label><input v-model="carInfo.zone" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-center font-bold text-slate-700 focus:border-[var(--color-primary)] focus:outline-none" placeholder="G區"></div></div><div><label class="block text-xs font-bold text-slate-400 mb-1">備註 / 圖片連結</label><textarea v-model="carInfo.note" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm text-slate-700 focus:border-[var(--color-primary)] focus:outline-none" rows="3" placeholder="例如：停在電梯口附近..."></textarea><a href="https://imgbb.com/upload" target="_blank" class="block w-full bg-slate-100 hover:bg-slate-200 text-slate-500 text-xs font-bold py-2 rounded-lg text-center border border-dashed border-slate-300"><i class="fas fa-camera mr-1"></i> 上傳圖片 (複製連結貼回備註)</a></div><div class="text-[10px] text-slate-400 bg-slate-50 p-2 rounded mt-4"><i class="fas fa-info-circle mr-1"></i> 點擊上方「同步」按鈕，可將資訊上傳給旅伴。</div></div></div>
+                    
+                    <!-- ★★★ 停車資訊 (新增：圖片連結欄位 + 顯示圖片) ★★★ -->
+                    <div v-else-if="toolSubTab === 'car'" class="pb-24">
+                        <div class="bg-white card-rounded p-6 border border-slate-50 shadow-sm mx-1">
+                            <div class="flex justify-between items-center mb-4">
+                                <h3 class="font-bold text-slate-800 flex items-center"><i class="fas fa-car mr-2 text-[var(--color-primary)]"></i> 停車/租車</h3>
+                                <button @click="syncParking" class="text-xs bg-[var(--color-primary)] text-white px-3 py-1.5 rounded-full font-bold active:scale-95 transition" :disabled="isSaving"><i class="fas fa-cloud-upload-alt mr-1"></i>{{ isSaving ? '更新中' : '同步' }}</button>
+                            </div>
+                            
+                            <div class="mb-4"><label class="block text-xs font-bold text-slate-400 mb-1">車牌號碼</label><input v-model="carInfo.plate" class="w-full bg-slate-50 border-2 border-slate-200 rounded-xl p-4 text-center text-3xl font-black text-slate-700 tracking-widest uppercase focus:border-[var(--color-primary)] focus:outline-none" placeholder="12-34"></div>
+                            <div class="flex gap-3 mb-4"><div class="flex-1"><label class="block text-xs font-bold text-slate-400 mb-1">樓層 Floor</label><input v-model="carInfo.floor" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-center font-bold text-slate-700 focus:border-[var(--color-primary)] focus:outline-none" placeholder="B1"></div><div class="flex-1"><label class="block text-xs font-bold text-slate-400 mb-1">區域 Zone</label><input v-model="carInfo.zone" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-center font-bold text-slate-700 focus:border-[var(--color-primary)] focus:outline-none" placeholder="G區"></div></div>
+                            
+                            <!-- 圖片上傳與顯示 -->
+                            <div class="mb-4">
+                                <label class="block text-xs font-bold text-slate-400 mb-1">圖片網址 (選填)</label>
+                                <input v-model="carInfo.imageUrl" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-2 text-xs text-slate-600 focus:border-[var(--color-primary)] focus:outline-none mb-2" placeholder="https://...">
+                                
+                                <!-- 圖片預覽 -->
+                                <div v-if="carInfo.imageUrl" class="mb-3 relative rounded-xl overflow-hidden border border-slate-200 shadow-sm">
+                                    <img :src="carInfo.imageUrl" class="w-full h-48 object-cover" onerror="this.style.display='none'">
+                                </div>
+
+                                <a href="https://imgbb.com/upload" target="_blank" class="block w-full bg-slate-100 hover:bg-slate-200 text-slate-500 text-xs font-bold py-2 rounded-lg text-center border border-dashed border-slate-300"><i class="fas fa-camera mr-1"></i> 上傳圖片 (取得連結貼回上方)</a>
+                            </div>
+
+                            <div class="mb-4">
+                                <label class="block text-xs font-bold text-slate-400 mb-1">備註</label>
+                                <textarea v-model="carInfo.note" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm text-slate-700 focus:border-[var(--color-primary)] focus:outline-none" rows="3" placeholder="例如：停在電梯口附近..."></textarea>
+                            </div>
+                            
+                            <div class="text-[10px] text-slate-400 bg-slate-50 p-2 rounded"><i class="fas fa-info-circle mr-1"></i> 點擊上方「同步」按鈕，可將車牌與照片位置分享給旅伴。</div>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Tab 4: 資訊 -->
@@ -351,6 +363,7 @@
             <button @click="scrollToTop('info')" class="flex-1 py-1 flex flex-col items-center transition duration-300 relative group" :class="activeTab === 'info' ? 'text-indigo-500' : 'text-slate-500'"><i class="fas fa-book-open text-base mb-0.5 transition-transform group-active:scale-90"></i><span class="text-[8px] font-black">資訊</span></button>
         </nav>
 
+        <!-- Expense Modal & Settlement Modal & Phrase Modal (保持不變) -->
         <div v-if="showExpenseModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm" @click.self="showExpenseModal = false">
             <div class="bg-white card-rounded w-full max-w-sm p-8 shadow-2xl transform transition-all border border-white">
                 <h3 class="text-xl font-bold mb-8 text-slate-800 flex items-center">
@@ -445,6 +458,7 @@
                     { name: '札幌 Forza (Hotel Forza)', nights: '第 8 晚', phone: '+81-11-222-3555' },
                 ];
 
+                // Food Recommendations
                 const foodRecommendations = { '根室花丸': '必點：二層帆立貝、花咲蟹鐵波汁、炙燒鮭魚', '達摩': '必點：成吉思汗烤肉、上肉 (數量限定)、茶泡飯', '成吉思汗': '必點：成吉思汗烤肉、小羊肉', '三角市場': '必點：帝王蟹、海膽丼、滝波食堂/武田鮮魚店', 'Suage': '必點：知床雞野菜湯咖哩、柚子胡椒風味', '湯咖哩': '必點：雞腿湯咖哩、加起司飯', '一幻': '必點：鮮蝦味噌拉麵 (適量豚骨/粗麵)、蝦仁飯糰', '拉麵': '必點：味噌拉麵、奶油玉米拉麵', 'LeTAO': '必點：雙層芝士蛋糕 (Double Fromage)、紅茶巧克力', '北菓樓': '必點：夢不思議泡芙、妖精之森年輪蛋糕', '六花亭': '必點：萊姆葡萄奶油夾心餅、草莓巧克力', '彩未': '必點：味噌拉麵 (生薑風味)', '蟹本家': '必點：螃蟹會席料理、炸蟹殼', '冰雪之門': '必點：帝王蟹全餐' };
                 const packingItems = [ {text: '護照 + 影本', checked: false}, {text: '國際駕照 + 台灣駕照/日文譯本', checked: false}, {text: 'VJW 截圖 (入境/海關)', checked: false}, {text: '現金 (日幣) + 信用卡 (JCB佳)', checked: false}, {text: 'Sim卡 / 漫遊開通', checked: false}, {text: '行動電源 + 充電線', checked: false}, {text: '雪靴 (防滑防水)', checked: false}, {text: '發熱衣 / 發熱褲', checked: false}, {text: '手套 (防水) + 毛帽', checked: false}, {text: '墨鏡 (雪地反光強)', checked: false}, {text: '個人常備藥 / 暈車藥', checked: false}, {text: '保濕乳液 / 護唇膏', checked: false}, {text: '暖暖包 (貼式/手握)', checked: false}, {text: '牙刷牙膏 (部分飯店不主動提供)', checked: false} ];
                 const phrasebookData = [ {cat: '餐廳', jp: '英語のメニューはありますか', pron: 'Eigo no menyu wa arimasuka', cn: '有英文菜單嗎？'}, {cat: '餐廳', jp: '会計をお願いします', pron: 'Kaikei o onegaishimasu', cn: '我要結帳'}, {cat: '餐廳', jp: 'おすすめは何ですか', pron: 'Osusume wa nan desu ka', cn: '有什麼推薦的嗎？'}, {cat: '自駕', jp: '満タン、レギュラーで', pron: 'Mantan, Regyura de', cn: '加滿油 (Regular)'}, {cat: '自駕', jp: '駐車場はどこですか', pron: 'Chushajo wa doko desu ka', cn: '停車場在哪裡？'}, {cat: '求助', jp: 'トイレはどこですか', pron: 'Toire wa doko desu ka', cn: '廁所在哪裡？'}, {cat: '求助', jp: 'すみません', pron: 'Sumimasen', cn: '不好意思 / 請問'} ];
@@ -480,7 +494,7 @@
                 const packingList = ref(JSON.parse(localStorage.getItem('hokkaido_packing')) || packingItems);
                 const shoppingList = ref(JSON.parse(localStorage.getItem('hokkaido_shopping')) || []);
                 const newShopItem = ref({text: '', who: ''});
-                const carInfo = ref(JSON.parse(localStorage.getItem('hokkaido_car')) || { plate: '', floor: '', zone: '', note: '' });
+                const carInfo = ref(JSON.parse(localStorage.getItem('hokkaido_car')) || { plate: '', floor: '', zone: '', note: '', imageUrl: '' }); // Added imageUrl
 
                 // Methods
                 const saveCarInfo = () => { localStorage.setItem('hokkaido_car', JSON.stringify(carInfo.value)); };
@@ -488,15 +502,28 @@
                 const syncParking = async () => {
                     if (!APPS_SCRIPT_URL) { alert("請先設定 Apps Script"); return; }
                     isSaving.value = true;
-                    const parkingData = { amount: 0, description: 'PARKING_DATA::' + JSON.stringify(carInfo.value), payer: 'SYSTEM' };
-                    try { await fetch(APPS_SCRIPT_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify(parkingData) }); alert('停車資訊已同步！'); } catch (e) { alert("同步失敗"); } finally { isSaving.value = false; }
+                    const parkingData = { 
+                        amount: 0, 
+                        description: 'PARKING_DATA::' + JSON.stringify(carInfo.value), 
+                        payer: 'SYSTEM' 
+                    };
+                    try {
+                        await fetch(APPS_SCRIPT_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify(parkingData) });
+                        alert('停車資訊已同步！');
+                    } catch (e) { alert("同步失敗"); } finally { isSaving.value = false; }
                 };
 
                 const isDeposit = (exp) => exp.description && exp.description.includes('(入金)');
 
                 const switchExpenseMode = (mode) => {
                     expenseMode.value = mode;
-                    if (mode === 'deposit') { newExpense.value.payer = 'IVAN'; newExpense.value.description = '公費入金'; } else { newExpense.value.payer = '公數'; newExpense.value.description = ''; }
+                    if (mode === 'deposit') {
+                        newExpense.value.payer = 'IVAN'; 
+                        newExpense.value.description = '公費入金';
+                    } else {
+                        newExpense.value.payer = '公數';
+                        newExpense.value.description = '';
+                    }
                 };
 
                 const publicFundBalance = computed(() => {
@@ -557,11 +584,17 @@
                                 if(firstDay) selectedDay.value = firstDay;
                             }
                             loading.value = false;
-                        }, error: (err) => { console.error(err); loading.value = false; }
+                        },
+                        error: (err) => { console.error(err); loading.value = false; }
                     });
                 };
 
-                const useMockData = () => { itineraryData.value = [{ Date: '2025/12/20', Time: '', Location: '新千歲機場', Activity: '抵達！', Note: '範例資料', Category: 'Transport', Link: '' }]; usingMockData.value = true; loading.value = false; selectedDay.value = '2025/12/20'; };
+                const useMockData = () => {
+                    itineraryData.value = [{ Date: '2025/12/20', Time: '', Location: '新千歲機場', Activity: '抵達！', Note: '範例資料', Category: 'Transport', Link: '' }];
+                    usingMockData.value = true;
+                    loading.value = false;
+                    selectedDay.value = '2025/12/20';
+                };
 
                 const fetchExpenses = async () => {
                     if (!APPS_SCRIPT_URL) return;
@@ -572,7 +605,13 @@
                         if (Array.isArray(data)) { 
                             expenses.value = data.filter(d => d.payer !== 'SYSTEM');
                             const parkingData = data.find(d => d.payer === 'SYSTEM' && d.description.startsWith('PARKING_DATA::'));
-                            if (parkingData) { try { const parsed = JSON.parse(parkingData.description.replace('PARKING_DATA::', '')); carInfo.value = parsed; localStorage.setItem('hokkaido_car', JSON.stringify(parsed)); } catch(e) {} }
+                            if (parkingData) {
+                                try {
+                                    const parsed = JSON.parse(parkingData.description.replace('PARKING_DATA::', ''));
+                                    carInfo.value = parsed;
+                                    localStorage.setItem('hokkaido_car', JSON.stringify(parsed));
+                                } catch(e) {}
+                            }
                         }
                     } catch (e) { console.error("Sync error", e); } finally { syncingExpenses.value = false; }
                 };
@@ -584,7 +623,11 @@
                         weather.value = data;
                         if (data.daily) {
                             data.daily.time.forEach((time, index) => {
-                                dailyForecast.value[time] = { temp: Math.round((data.daily.temperature_2m_max[index] + data.daily.temperature_2m_min[index]) / 2), sunset: data.daily.sunset[index].split('T')[1], code: data.daily.weathercode[index] };
+                                dailyForecast.value[time] = {
+                                    temp: Math.round((data.daily.temperature_2m_max[index] + data.daily.temperature_2m_min[index]) / 2),
+                                    sunset: data.daily.sunset[index].split('T')[1],
+                                    code: data.daily.weathercode[index]
+                                };
                             });
                         }
                     } catch (e) { console.error(e); }
@@ -594,14 +637,24 @@
                     if (!newExpense.value.amount) return;
                     if (!APPS_SCRIPT_URL) { alert("請先設定 Apps Script 網址！"); return; }
                     isSaving.value = true;
+
                     let finalDesc = newExpense.value.description;
-                    if (expenseMode.value === 'deposit') { finalDesc = finalDesc.includes('(入金)') ? finalDesc : `(入金) ${finalDesc}`; }
-                    const expenseData = { amount: parseInt(newExpense.value.amount), description: finalDesc, payer: newExpense.value.payer };
+                    if (expenseMode.value === 'deposit') {
+                        finalDesc = finalDesc.includes('(入金)') ? finalDesc : `(入金) ${finalDesc}`;
+                    }
+
+                    const expenseData = { 
+                        amount: parseInt(newExpense.value.amount), 
+                        description: finalDesc, 
+                        payer: newExpense.value.payer 
+                    };
+
                     try {
                         if (isEditing.value && editingId.value) {
                             await fetch(APPS_SCRIPT_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify({ action: 'delete', id: editingId.value }) });
                             expenses.value = expenses.value.filter(e => e.id !== editingId.value);
                         }
+
                         await fetch(APPS_SCRIPT_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify(expenseData) });
                         expenses.value.unshift({ ...expenseData, date: new Date().toISOString(), id: 'temp-' + Date.now() });
                         showExpenseModal.value = false;
@@ -609,15 +662,22 @@
                     } catch (e) { alert("儲存失敗"); } finally { isSaving.value = false; }
                 };
                 
-                const addExpense = submitExpense; // Alias for template compatibility
+                // Alias addExpense to submitExpense for template compatibility
+                const addExpense = submitExpense;
 
                 const openEditModal = (item = null) => {
                     if (item) {
-                        isEditing.value = true; editingId.value = item.id;
-                        newExpense.value = { amount: parseInt(item.amount), description: item.description, payer: item.payer };
+                        isEditing.value = true;
+                        editingId.value = item.id;
+                        newExpense.value = {
+                            amount: parseInt(item.amount),
+                            description: item.description,
+                            payer: item.payer
+                        };
                         expenseMode.value = isDeposit(item) ? 'deposit' : 'expense';
                     } else {
-                        isEditing.value = false; editingId.value = null;
+                        isEditing.value = false;
+                        editingId.value = null;
                         newExpense.value = { amount: '', description: '', payer: '公數' };
                         expenseMode.value = 'expense';
                     }
@@ -640,6 +700,7 @@
                 const toggleShop = (idx) => { shoppingList.value[idx].checked = !shoppingList.value[idx].checked; localStorage.setItem('hokkaido_shopping', JSON.stringify(shoppingList.value)); };
                 const removeShopItem = (idx) => { if(confirm('刪除此代購項目？')) { shoppingList.value.splice(idx, 1); localStorage.setItem('hokkaido_shopping', JSON.stringify(shoppingList.value)); } };
                 const showPhraseModal = (phrase) => { selectedPhrase.value = phrase; };
+                
                 const getItemKey = (item) => `${item.Date}-${item.Time}-${item.Activity}`;
                 const saveMemos = () => localStorage.setItem('hokkaido_memos', JSON.stringify(memos.value));
                 
