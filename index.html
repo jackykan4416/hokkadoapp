@@ -60,7 +60,7 @@
         .banner-enter-active, .banner-leave-active { transition: opacity 0.5s ease; }
         .banner-enter-from, .banner-leave-to { opacity: 0; }
 
-        /* ★★★ 修復：補上 slide-up 過場動畫樣式 ★★★ */
+        /* 過場動畫樣式 */
         .slide-up-enter-active,
         .slide-up-leave-active {
             transition: all 0.3s ease-out;
@@ -279,7 +279,7 @@
                     <div v-if="!APPS_SCRIPT_URL" class="bg-red-50 text-red-500 p-4 rounded-2xl text-xs mb-4 flex items-center border border-red-100 mx-1"><i class="fas fa-exclamation-triangle mr-3 text-lg"></i> 請填入 Apps Script 網址</div>
 
                     <div class="flex gap-2 mb-6 mx-1">
-                        <button @click="showExpenseModal = true" class="flex-1 bg-[var(--color-primary)] hover:bg-[var(--color-primary-dark)] text-white font-bold py-4 rounded-2xl shadow-lg transition transform active:scale-95 flex items-center justify-center text-lg"><i class="fas fa-plus mr-2"></i> 記一筆</button>
+                        <button @click="openEditModal()" class="flex-1 bg-[var(--color-primary)] hover:bg-[var(--color-primary-dark)] text-white font-bold py-4 rounded-2xl shadow-lg transition transform active:scale-95 flex items-center justify-center text-lg"><i class="fas fa-plus mr-2"></i> 記一筆</button>
                         <button @click="calculateSettlement" class="w-16 bg-indigo-100 text-indigo-600 hover:bg-indigo-200 font-bold rounded-2xl shadow-sm transition flex items-center justify-center flex-col text-xs"><i class="fas fa-calculator text-xl mb-1"></i> 結算</button>
                     </div>
 
@@ -666,6 +666,14 @@
 
                 const submitExpense = async () => {
                     if (!newExpense.value.amount) return;
+                    
+                    // ★★★ 新增檢查：禁止項目說明只填數字 ★★★
+                    // 如果是「支出」模式或「編輯」模式，且描述全是數字，則擋下
+                    if ((expenseMode.value === 'expense' || isEditing.value) && /^\d+$/.test(newExpense.value.description)) {
+                        alert("項目說明不能只有數字！請輸入具體內容 (例如: 午餐)");
+                        return;
+                    }
+
                     if (!APPS_SCRIPT_URL) { alert("請先設定 Apps Script 網址！"); return; }
                     isSaving.value = true;
                     let finalDesc = newExpense.value.description;
@@ -678,7 +686,11 @@
                         }
                         await fetch(APPS_SCRIPT_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify(expenseData) });
                         expenses.value.unshift({ ...expenseData, date: new Date().toISOString(), id: 'temp-' + Date.now() });
+                        
+                        // ★★★ 修改這裡：成功後重置表單並關閉 ★★★
                         showExpenseModal.value = false;
+                        newExpense.value = { amount: '', description: '', payer: '公數' }; // 清空資料
+                        
                         setTimeout(fetchExpenses, 2000);
                     } catch (e) { alert("儲存失敗"); } finally { isSaving.value = false; }
                 };
@@ -691,6 +703,7 @@
                         newExpense.value = { amount: parseInt(item.amount), description: item.description, payer: item.payer };
                         expenseMode.value = isDeposit(item) ? 'deposit' : 'expense';
                     } else {
+                        // 這裡確保每次打開 "新增" 時都是空的
                         isEditing.value = false; editingId.value = null;
                         newExpense.value = { amount: '', description: '', payer: '公數' };
                         expenseMode.value = 'expense';
